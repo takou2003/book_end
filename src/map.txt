@@ -1,0 +1,154 @@
+ const quartiersYaounde = [
+                // Yaoundé I
+                { nom: 'Briqueterie', arrondissement: 'Yaoundé I' },
+                { nom: 'Mvog-Betsi', arrondissement: 'Yaoundé I' },
+                { nom: 'Élig-Edzoa', arrondissement: 'Yaoundé I' },
+                { nom: 'Étoudi', arrondissement: 'Yaoundé I' },
+                { nom: 'Nkongmondo', arrondissement: 'Yaoundé I' },
+                { nom: 'Mvolyé', arrondissement: 'Yaoundé I' },
+                { nom: 'Mimboman', arrondissement: 'Yaoundé I' },
+                { nom: 'Nkol-Ebogo', arrondissement: 'Yaoundé I' },
+
+                // Yaoundé II
+                { nom: 'Mvog-Mbi', arrondissement: 'Yaoundé II' },
+                { nom: 'Messa', arrondissement: 'Yaoundé II' },
+                { nom: 'Carrière', arrondissement: 'Yaoundé II' },
+                { nom: 'Mendong', arrondissement: 'Yaoundé II' },
+                { nom: 'Nkolbisson', arrondissement: 'Yaoundé II' },
+                { nom: 'Éfoulan', arrondissement: 'Yaoundé II' },
+                { nom: 'Nkol-Eton', arrondissement: 'Yaoundé II' },
+                { nom: 'Nkolmesseng', arrondissement: 'Yaoundé II' },
+                { nom: 'Nkoabang', arrondissement: 'Yaoundé II' },
+                { nom: 'Nkolbikok', arrondissement: 'Yaoundé II' },
+                { nom: 'Melen', arrondissement: 'Yaoundé II' },
+
+                // Yaoundé III
+                { nom: 'Biyem-Assi', arrondissement: 'Yaoundé III' },
+                { nom: 'Cité Verte', arrondissement: 'Yaoundé III' },
+                { nom: 'Nlongkak', arrondissement: 'Yaoundé III' },
+                { nom: 'Mvan', arrondissement: 'Yaoundé III' },
+                { nom: 'Nkolmengong', arrondissement: 'Yaoundé III' },
+                { nom: 'Mfandena', arrondissement: 'Yaoundé III' },
+                { nom: 'Tsinga', arrondissement: 'Yaoundé III' },
+                { nom: 'Obili', arrondissement: 'Yaoundé III' },
+                { nom: 'Nkolndongo', arrondissement: 'Yaoundé III' },
+
+                // Yaoundé IV
+                { nom: 'Essos', arrondissement: 'Yaoundé IV' },
+                { nom: 'Nkolndongo', arrondissement: 'Yaoundé IV' },
+                { nom: 'Djoungolo', arrondissement: 'Yaoundé IV' },
+                { nom: 'Tsinga', arrondissement: 'Yaoundé IV' },
+                { nom: 'Quartier Fouda', arrondissement: 'Yaoundé IV' },
+                { nom: 'Nkol-Ewo', arrondissement: 'Yaoundé IV' },
+                { nom: 'Mokolo', arrondissement: 'Yaoundé IV' },
+                { nom: 'Mvog-Ada', arrondissement: 'Yaoundé IV' },
+
+                // Yaoundé V
+                { nom: 'Plateau', arrondissement: 'Yaoundé V' },
+                { nom: 'Quartier du Lac', arrondissement: 'Yaoundé V' },
+                { nom: 'Ahala', arrondissement: 'Yaoundé V' },
+                { nom: 'Nkomkana', arrondissement: 'Yaoundé V' },
+                { nom: 'Ekié', arrondissement: 'Yaoundé V' },
+                { nom: 'Mballa II', arrondissement: 'Yaoundé V' },
+                { nom: 'Mfoudi', arrondissement: 'Yaoundé V' },
+                { nom: 'Bastos', arrondissement: 'Yaoundé V' },
+                { nom: 'Hippodrome', arrondissement: 'Yaoundé V' },
+                { nom: 'Ngoa-Ekellé', arrondissement: 'Yaoundé V' },
+                { nom: 'Camp SIC', arrondissement: 'Yaoundé V' },
+
+                // Yaoundé VI
+                { nom: 'Simbock', arrondissement: 'Yaoundé VI' },
+                { nom: 'Olembé', arrondissement: 'Yaoundé VI' },
+                { nom: 'Ekounou', arrondissement: 'Yaoundé VI' },
+                { nom: 'Emombo', arrondissement: 'Yaoundé VI' },
+                { nom: 'Mbankomo', arrondissement: 'Yaoundé VI' },
+                { nom: 'Ntougou', arrondissement: 'Yaoundé VI' },
+                { nom: 'Nkolmeyang', arrondissement: 'Yaoundé VI' },
+                { nom: 'Minkoameyos', arrondissement: 'Yaoundé VI' },
+
+                // Yaoundé VII
+                { nom: 'Nkolbisson', arrondissement: 'Yaoundé VII' },
+                { nom: 'Nkolmengong', arrondissement: 'Yaoundé VII' },
+                { nom: 'Nkolbikok', arrondissement: 'Yaoundé VII' },
+                { nom: 'Nkolmeyang', arrondissement: 'Yaoundé VII' },
+                { nom: 'Awae', arrondissement: 'Yaoundé VII' },
+                { nom: 'Minkoameyos', arrondissement: 'Yaoundé VII' },
+                { nom: 'Nkol-Nguet', arrondissement: 'Yaoundé VII' }
+            ];
+ const quartiersDouala = [
+                // Douala I
+                { nom: 'Bonapriso', arrondissement: 'Douala I' },
+                { nom: 'Bépanda', arrondissement: 'Douala I' },
+                { nom: 'Bassa', arrondissement: 'Douala I' },
+                { nom: 'New-Bell', arrondissement: 'Douala I' },
+                { nom: 'Nkongmondo', arrondissement: 'Douala I' },
+                { nom: 'Ndogbong', arrondissement: 'Douala I' },
+                { nom: 'Bonnefoy', arrondissement: 'Douala I' },
+                { nom: 'Camp-Sic', arrondissement: 'Douala I' },
+                { nom: 'Marché Congo', arrondissement: 'Douala I' },
+                { nom: 'Marché Sandaga', arrondissement: 'Douala I' },
+                { nom: 'Cité Sotega', arrondissement: 'Douala I' },
+                { nom: 'Akwa', arrondissement: 'Douala I' },
+
+                // Douala II
+                { nom: 'Kotto', arrondissement: 'Douala II' },
+                { nom: 'Logpom', arrondissement: 'Douala II' },
+                { nom: 'Ndogbong', arrondissement: 'Douala II' },
+                { nom: 'Sable', arrondissement: 'Douala II' },
+                { nom: 'Bonamoussadi', arrondissement: 'Douala II' },
+                { nom: 'Nyalla', arrondissement: 'Douala II' },
+                { nom: 'Sardinerie', arrondissement: 'Douala II' },
+                { nom: 'Logbessou', arrondissement: 'Douala II' },
+                { nom: 'Logbessou Plateau', arrondissement: 'Douala II' },
+                { nom: 'Makepe', arrondissement: 'Douala II' },
+
+                // Douala III
+                { nom: 'Logbaba', arrondissement: 'Douala III' },
+                { nom: 'Bonaléa', arrondissement: 'Douala III' },
+                { nom: 'Mabanda', arrondissement: 'Douala III' },
+                { nom: 'Mboppi', arrondissement: 'Douala III' },
+                { nom: 'Bois des Singes', arrondissement: 'Douala III' },
+                { nom: 'Ndogpassi', arrondissement: 'Douala III' },
+                { nom: 'Ndogpassi III', arrondissement: 'Douala III' },
+                { nom: 'Village', arrondissement: 'Douala III' },
+                { nom: 'Deïdo', arrondissement: 'Douala III' },
+
+                // Douala IV
+                { nom: 'Bonassama', arrondissement: 'Douala IV' },
+                { nom: 'Mambanda', arrondissement: 'Douala IV' },
+                { nom: 'Moungué', arrondissement: 'Douala IV' },
+                { nom: 'Mambang', arrondissement: 'Douala IV' },
+                { nom: 'Mambanda Sud', arrondissement: 'Douala IV' },
+                { nom: 'Koutaba', arrondissement: 'Douala IV' },
+                { nom: 'Mambanda Village', arrondissement: 'Douala IV' },
+                { nom: 'Mambanda Nord', arrondissement: 'Douala IV' },
+
+                // Douala V
+                { nom: 'Kpwa', arrondissement: 'Douala V' },
+                { nom: 'Kpwa-Bonandog', arrondissement: 'Douala V' },
+                { nom: 'Bonabéri', arrondissement: 'Douala V' },
+                { nom: 'Bwassadi', arrondissement: 'Douala V' },
+                { nom: 'Makepe', arrondissement: 'Douala V' },
+                { nom: 'Missoké', arrondissement: 'Douala V' },
+                { nom: 'Bonandog', arrondissement: 'Douala V' },
+                { nom: 'Kpwa Village', arrondissement: 'Douala V' },
+
+                // Douala VI
+                { nom: 'Manoka', arrondissement: 'Douala VI' },
+                { nom: 'Mouti', arrondissement: 'Douala VI' },
+                { nom: 'Soumou', arrondissement: 'Douala VI' },
+                { nom: 'Pété', arrondissement: 'Douala VI' },
+                { nom: 'Cap-Cameroun', arrondissement: 'Douala VI' },
+                { nom: 'Nguele', arrondissement: 'Douala VI' },
+                { nom: 'Yoyo', arrondissement: 'Douala VI' },
+
+                // Douala VII
+                { nom: 'Bassa', arrondissement: 'Douala VII' },
+                { nom: 'Bonabéri', arrondissement: 'Douala VII' },
+                { nom: 'Logbaba', arrondissement: 'Douala VII' },
+                { nom: 'Bonapriso', arrondissement: 'Douala VII' },
+                { nom: 'Deïdo', arrondissement: 'Douala VII' },
+                { nom: 'Akwa Nord', arrondissement: 'Douala VII' },
+                { nom: 'Akwa Sud', arrondissement: 'Douala VII' },
+                { nom: 'Bali', arrondissement: 'Douala VII' }
+            ];

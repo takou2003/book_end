@@ -4,8 +4,12 @@ import {
   PrimaryGeneratedColumn, 
   Column, 
   CreateDateColumn, 
-  UpdateDateColumn 
+  UpdateDateColumn,
+  OneToOne,
+  JoinColumn 
 } from 'typeorm';
+import { Localisation } from '../../localisation/entities/localisation.entity';
+import { Teacher } from '../../teachers/entities/teacher.entity';
 
 @Entity('users')
 export class User {
@@ -38,4 +42,16 @@ export class User {
 
   @Column({ name: 'is_active', default: true })
   isActive: boolean;
+  
+  // Correction: Enlevez @JoinColumn() ici, c'est dans Localisation
+  @OneToOne(() => Localisation, (localisation) => localisation.user, {
+    cascade: true,
+    eager: false
+  })
+  localisation: Localisation;
+  
+  @OneToOne(() => Teacher, (teacher) => teacher.user, {
+    cascade: true
+  })
+  teacher: Teacher; // <-- Ajoutez cette propriété
 }
