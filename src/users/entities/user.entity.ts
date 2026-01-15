@@ -6,32 +6,62 @@ import {
   CreateDateColumn, 
   UpdateDateColumn,
   OneToOne,
-  JoinColumn 
+  JoinColumn  
 } from 'typeorm';
-import { Localisation } from '../../localisation/entities/localisation.entity';
-import { Teacher } from '../../teachers/entities/teacher.entity';
+import { Tutor } from '../../tutors/entities/tutor.entity';
 
 @Entity('users')
 export class User {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ name: 'firstname', length: 100 })
-  firstname: string;
+  @Column({ 
+    name: 'username', 
+    length: 50, // Même longueur que dans la table (50)
+    nullable: false 
+  })
+  username: string;
 
-  @Column({ name: 'lastname', length: 100 })
-  lastname: string;
+  @Column({ 
+    name: 'password', 
+    length: 50, // Même longueur
+    nullable: false 
+  })
+  password: string;
 
-  @Column({ name: 'password', length: 25, nullable: true })
-  password?: string;
+  @Column({ 
+    name: 'ville', 
+    length: 50, // Même longueur
+    nullable: false 
+  })
+  ville: string;
 
-  @Column({ name: 'phone', length: 10, nullable: true })
-  phone?: string;
+  @Column({ 
+    name: 'quartier', 
+    length: 50, // Même longueur
+    nullable: false 
+  })
+  quartier: string;
 
-  @Column({ name: 'email', length: 255, unique: true, nullable: true })
-  email?: string;
+  @Column({ 
+    name: 'latitude', 
+    type: 'float', // double precision dans PostgreSQL = float
+    nullable: false 
+  })
+  latitude: number;
+  
+  @Column({ 
+    name: 'longitude', 
+    type: 'float', // double precision dans PostgreSQL = float
+    nullable: false 
+  })
+  longitude: number;
 
-  @Column({ name: 'role', default: 1 })
+  @Column({ 
+    name: 'role', 
+    type: 'int',
+    nullable: false 
+  })
   role: number;
 
   @CreateDateColumn({ name: 'created_at' })
@@ -40,18 +70,21 @@ export class User {
   @UpdateDateColumn({ name: 'updated_at' })
   updatedAt: Date;
 
-  @Column({ name: 'is_active', default: true })
+  @Column({ 
+    name: 'is_active', 
+    type: 'boolean',
+    default: true,
+    nullable: false 
+  })
   isActive: boolean;
   
-  // Correction: Enlevez @JoinColumn() ici, c'est dans Localisation
-  @OneToOne(() => Localisation, (localisation) => localisation.user, {
-    cascade: true,
-    eager: false
+  @Column({ 
+    name: 'phone', 
+    length: 15, // Même longueur
+    nullable: false 
   })
-  localisation: Localisation;
+  phone: string;
   
-  @OneToOne(() => Teacher, (teacher) => teacher.user, {
-    cascade: true
-  })
-  teacher: Teacher; // <-- Ajoutez cette propriété
+  @OneToOne(() => Tutor, (tutor) => tutor.user)
+  tutor: Tutor; // Relation simple sans configuration de jointure;
 }

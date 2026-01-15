@@ -1,106 +1,95 @@
 // src/users/users.controller.ts
-import { Controller, Get, Post, Body, Param, Query,HttpCode, HttpStatus} from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Query, HttpCode, HttpStatus } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { User } from './entities/user.entity';
+
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
-  // 1. Routes spécifiques AVANT les routes avec paramètres
-  @Get('sign_in/:email')
-  async findAllWithLocalisation(
-    @Param('email') email: string, 
-    @Query('includeInactive') includeInactive?: string
-  ): Promise<{
+  @Get('phone/:phone')
+  async findByPhone(@Param('phone') phone: string): Promise<{
     success: boolean;
-    count: number;
-    data: User[];
+    found: boolean;
+    data: User | null;
     timestamp: string;
   }> {
-    let users: User[];
-    if (includeInactive === 'true') {
-      users = await this.usersService.findAllWithLocalisationQueryBuilder(email);
-    } else {
-      users = await this.usersService.findAllWithLocalisation(email);
-    } 
+    const users = await this.usersService.findByPhone(phone);
+    
     return {
       success: true,
-      count: users.length,
+      found: !!users,
       data: users,
       timestamp: new Date().toISOString(),
     };
   }
 
-  @Post('sign_up')
-  @HttpCode(HttpStatus.CREATED)
-  async createsimple(@Body() userData: any): Promise<{
+  @Post()
+  async create(@Body() userData: any): Promise<{
     success: boolean;
-    data: {
-      user: any;
-      localisation: any | null;
-    };
+    data: User;
     message: string;
   }> {
-    const { user, localisation } = await this.usersService.createWithLocalisationTransactional(userData);
+    const user = await this.usersService.create({
+      username: userData.username,
+      password: userData.password,
+      ville: userData.ville,
+      quartier: userData.quartier,
+      latitude: userData.latitude,
+      longitude: userData.longitude,
+      role: userData.role || 0,
+      phone: userData.phone,
+    });
     
     return {
       success: true,
-      data: {
-        user: {
-          id: user.id,
-          firstname: user.firstname,
-          lastname: user.lastname,
-          email: user.email,
-          phone: user.phone,
-          role: user.role,
-        },
-        localisation: localisation ? {
-          id: localisation.id,
-          addresse: localisation.addresse,
-          latitude: localisation.latitude,
-          longitude: localisation.longitude,
-          pathImage: localisation.pathImage,
-        } : null
-      },
-      message: localisation 
-        ? 'User and localisation created successfully' 
-        : 'User created successfully (no localisation provided)'
+      data: user,
+      message: 'User created successfully'
     };
   }
-  @Post('sign_up_teacher')
+  
+  @Post('Save_Tutor')
   @HttpCode(HttpStatus.CREATED)
-  async createteacher(@Body() userData: any): Promise<{
-    success: boolean;
-    data: {
-      user: any;
-      localisation: any | null;
-    };
-    message: string;
-  }> {
-    const { user, localisation } = await this.usersService.create_teacher(userData);
-    
+  async createTutor(@Body() userData: any) {
+    try {
+      const result = await this.usersService.Create_Tutor(userData);
+      
+      return this.formatTutorResponse(result);
+    } catch (error) {
+      return this.formatErrorResponse(error, 'Erreur lors de la création du tutor');
+    }
+  }
+
+  // Ajoutez ces méthodes manquantes
+  private formatTutorResponse(result: { user: User; tutor: any; success: boolean }) {
     return {
       success: true,
       data: {
         user: {
-          id: user.id,
-          firstname: user.firstname,
-          lastname: user.lastname,
-          email: user.email,
-          phone: user.phone,
-          role: user.role,
+          id: result.user.id,
+          username: result.user.username,
+          ville: result.user.ville,
+          quartier: result.user.quartier,
+          phone: result.user.phone,
+          role: result.user.role,
         },
-        localisation: localisation ? {
-          id: localisation.id,
-          addresse: localisation.addresse,
-          latitude: localisation.latitude,
-          longitude: localisation.longitude,
-          pathImage: localisation.pathImage,
-        } : null
+        tutor: {
+          id: result.tutor.id,
+          mark: result.tutor.mark,
+          isActive: result.tutor.isActive,
+          userId: result.tutor.userId,
+        }
       },
-      message: localisation 
-        ? 'User and localisation created successfully' 
-        : 'User created successfully (no localisation provided)'
+      message: 'Tutor créé avec succès'
+    };
+  }
+
+  private formatErrorResponse(error: any, message: string) {
+    return {
+      success: false,
+      data: null,
+      message: message,
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
     };
   }
 }

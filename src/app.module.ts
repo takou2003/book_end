@@ -4,7 +4,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { UsersModule } from './users/users.module';
-import { TeachersModule } from './teachers/teachers.module';
+import { TutorsModule } from './tutors/tutors.module';
 
 @Module({
   imports: [
@@ -36,7 +36,7 @@ import { TeachersModule } from './teachers/teachers.module';
       }),
     }),
     UsersModule,
-    TeachersModule, // <-- Assurez-vous que UsersModule est ici
+    TutorsModule
   ],
   controllers: [AppController],
   providers: [AppService],
