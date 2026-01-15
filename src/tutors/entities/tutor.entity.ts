@@ -4,9 +4,11 @@ import {
   PrimaryGeneratedColumn, 
   Column, 
   OneToOne,
+  OneToMany, // AJOUTEZ CE IMPORT
   JoinColumn 
 } from 'typeorm';
 import { User } from '../../users/entities/user.entity';
+import { Assclass } from '../../assclass/entities/assclass.entity';
 
 @Entity('teachers')
 export class Tutor {
@@ -32,8 +34,10 @@ export class Tutor {
   })
   isActive: boolean;
 
- // OPTION 2: Simplifiez la relation
   @OneToOne(() => User, { onDelete: 'CASCADE' })
-  @JoinColumn({ name: 'user_id' }) // Seulement cette ligne, pas besoin de referencedColumnName
+  @JoinColumn({ name: 'user_id' })
   user: User;
+  
+  @OneToMany(() => Assclass, (assclass) => assclass.tutor)
+  assclasse: Assclass[]; // Notez le nom: assclasse (au singulier)
 }
