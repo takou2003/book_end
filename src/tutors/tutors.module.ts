@@ -6,10 +6,12 @@ import { TutorsController } from './tutors.controller';
 import { Tutor } from './entities/tutor.entity';
 import { Assclass } from '../assclass/entities/assclass.entity';
 import { Classe } from '../classes/entities/classe.entity';
+import { Reqclass } from '../reqclass/entities/reqclass.entity'; // Chemin corrigé
+import { User } from '../users/entities/user.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Tutor, Assclass, Classe])
+    TypeOrmModule.forFeature([Tutor, Assclass, Classe, Reqclass, User])
   ],
   controllers: [TutorsController],
   providers: [TutorsService],

@@ -7,6 +7,7 @@ import { UsersModule } from './users/users.module';
 import { TutorsModule } from './tutors/tutors.module';
 import { ClassesModule } from './classes/classes.module';
 import { AssclassModule } from './assclass/assclass.module';
+import { ReqclassModule } from './reqclass/reqclass.module';
 
 @Module({
   imports: [
@@ -40,7 +41,8 @@ import { AssclassModule } from './assclass/assclass.module';
     UsersModule,
     TutorsModule,
     ClassesModule,
-    AssclassModule
+    AssclassModule,
+    ReqclassModule
   ],
   controllers: [AppController],
   providers: [AppService],

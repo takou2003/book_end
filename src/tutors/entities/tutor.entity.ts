@@ -9,6 +9,7 @@ import {
 } from 'typeorm';
 import { User } from '../../users/entities/user.entity';
 import { Assclass } from '../../assclass/entities/assclass.entity';
+import { Reqclass } from '../../reqclass/entities/reqclass.entity';
 
 @Entity('teachers')
 export class Tutor {
@@ -40,4 +41,7 @@ export class Tutor {
   
   @OneToMany(() => Assclass, (assclass) => assclass.tutor)
   assclasse: Assclass[]; // Notez le nom: assclasse (au singulier)
+  
+  @OneToMany(() => Reqclass, (reqclass) => reqclass.tutor)
+  reqclasse: Reqclass[]; // Notez le nom: assclasse (au singulier)
 }

@@ -6,7 +6,7 @@ import {
   OneToMany // AJOUTEZ CE IMPORT
 } from 'typeorm';
 import { Assclass } from '../../assclass/entities/assclass.entity'; // Assclass (sans 'e')
-
+import { Reqclass } from '../../reqclass/entities/reqclass.entity';
 @Entity('classes')
 export class Classe {
   @PrimaryGeneratedColumn()
@@ -24,4 +24,7 @@ export class Classe {
   
   @OneToMany(() => Assclass, (assclass) => assclass.classe)
   assclasse: Assclass[]; // Nom de propriété au singulier
+  
+  @OneToMany(() => Reqclass, (reqclass) => reqclass.classe)
+  reqclasse: Reqclass[]; // Nom de propriété au singulier
 }

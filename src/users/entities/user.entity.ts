@@ -6,9 +6,11 @@ import {
   CreateDateColumn, 
   UpdateDateColumn,
   OneToOne,
-  JoinColumn  
+  JoinColumn,
+  OneToMany  
 } from 'typeorm';
 import { Tutor } from '../../tutors/entities/tutor.entity';
+import { Reqclass } from '../../reqclass/entities/reqclass.entity';
 
 @Entity('users')
 export class User {
@@ -87,4 +89,7 @@ export class User {
   
   @OneToOne(() => Tutor, (tutor) => tutor.user)
   tutor: Tutor; // Relation simple sans configuration de jointure;
+  
+  @OneToMany(() => Reqclass, (reqclass) => reqclass.classe)
+  reqclasse: Reqclass[]; // Nom de propriété au singulier
 }

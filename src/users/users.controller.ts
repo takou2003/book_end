@@ -2,12 +2,16 @@
 import { Controller, Get, Post, Body, Param, Query, HttpCode, HttpStatus } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { User } from './entities/user.entity';
+import { Tutor } from '../tutors/entities/tutor.entity';
+import { Reqclass } from '../reqclass/entities/reqclass.entity'; // Chemin corrigé
+import { Classe } from '../classes/entities/classe.entity'; // Chemin corrigé
+
 
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
-  @Get('phone/:phone')
+  @Get('SignIn/phone/:phone')
   async findByPhone(@Param('phone') phone: string): Promise<{
     success: boolean;
     found: boolean;
@@ -23,8 +27,28 @@ export class UsersController {
       timestamp: new Date().toISOString(),
     };
   }
+  
+  @Get('RequestList/:id')
+  async requestUser(@Param('id') id: number){ 
+    try {
+      const requests = await this.usersService.viewRequest(id);
+      
+      return {
+        success: true,
+        count: requests.length, // 
+        total_found: requests.length,
+        data: requests // 
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: 'Erreur lors de la recherche des requetes',
+        error: process.env.NODE_ENV === 'development' ? error.message : undefined
+      };
+    }
+  }
 
-  @Post()
+  @Post('Save_User')
   async create(@Body() userData: any): Promise<{
     success: boolean;
     data: User;
@@ -47,6 +71,53 @@ export class UsersController {
       message: 'User created successfully'
     };
   }
+  @Post('Make_request')
+	async createrequest(@Body() requestData: any): Promise<{
+	  success: boolean;
+	  data?: Reqclass;
+	  message: string;
+	  error?: string;
+	}> {
+	  try {
+	    console.log('Données reçues:', requestData); // Pour déboguer
+	    
+	    // Vérifiez que les données sont présentes
+	    if (!requestData.user_id || !requestData.teacher_id || !requestData.classe_id) {
+	      return {
+		success: false,
+		message: 'Données manquantes',
+		error: 'user_id, teacher_id et classe_id sont requis'
+	      };
+	    }
+
+	    // Créez l'objet dans le format attendu par Reqclass
+	    const reqclassData: Partial<Reqclass> = {
+	      userId: Number(requestData.user_id), // Assurez-vous que c'est le bon nom
+	      teacherId: Number(requestData.teacher_id), // Assurez-vous que c'est le bon nom
+	      classeId: Number(requestData.classe_id), // Assurez-vous que c'est le bon nom
+	      isActive: true,
+	      mark: 1
+	    };
+	    
+	    // Appelez la méthode
+	    const reqclass = await this.usersService.create_request(reqclassData);
+	    
+	    return {
+	      success: true,
+	      data: reqclass,
+	      message: 'Demande créée avec succès'
+	    };
+	    
+	  } catch (error) {
+	    console.error('Erreur lors de la création de la demande:', error);
+	    
+	    return {
+	      success: false,
+	      message: 'Erreur interne du serveur',
+	      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+	    };
+	  }
+	}
   
   @Post('Save_Tutor')
   @HttpCode(HttpStatus.CREATED)

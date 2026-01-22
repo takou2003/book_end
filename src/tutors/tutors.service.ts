@@ -3,8 +3,12 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm'; // AJOUTEZ
 import { Repository } from 'typeorm'; // AJOUTEZ
 import { Tutor } from './entities/tutor.entity';
+import { User } from '../users/entities/user.entity';
 import { Assclass } from '../assclass/entities/assclass.entity'; // Chemin corrigé
 import { Classe } from '../classes/entities/classe.entity'; // Chemin corrigé
+import { Reqclass } from '../reqclass/entities/reqclass.entity'; // Chemin corrigé
+
+
 
 @Injectable()
 export class TutorsService {
@@ -17,10 +21,17 @@ export class TutorsService {
     
     @InjectRepository(Classe)
     private classeRepository: Repository<Classe>,
+    
+    @InjectRepository(User)
+    private usersRepository: Repository<User>,
+    
+    @InjectRepository(Reqclass) 
+    private reqclassRepository: Repository<Reqclass>,
+    
   ) {}
   
   // Méthode avec les JOINs corrects
-  async search_Tutor(ville: string, classeName: string): Promise<any[]> {
+  async search_Tutor(ville: string, classeId: number): Promise<any[]> {
     const query = this.tutorRepository
       .createQueryBuilder('t')
       .innerJoin('t.user', 'u') // INNER JOIN users
@@ -39,9 +50,66 @@ export class TutorsService {
         'c.name AS class_name'
       ])
       .where('u.ville = :ville', { ville })
-      .andWhere('c.name = :classeName', { classeName })
+      .andWhere('c.id = :classeId', { classeId })
       .andWhere('t.isActive = true');
 
     return query.getRawMany();
   }
+  // voir les differentes requetes
+  async viewRequest(id: number): Promise<any[]> {
+  const query = this.reqclassRepository
+    .createQueryBuilder('rc')
+    .innerJoin('rc.user', 'u') // INNER JOIN users pour l'utilisateur simple
+    .innerJoin('rc.tutor', 't') // INNER JOIN teachers
+    .innerJoin('t.user', 'ut') // INNER JOIN users pour l'enseignant (via teachers)
+    .innerJoin('rc.classe', 'c') // INNER JOIN classes
+    .select([
+      'u.username AS nom_parent',
+      'ut.quartier AS quartier_user',
+      't.id AS teacher_id',
+      'ut.username AS nom_enseignant',
+      'ut.phone AS user_phone',
+      'c.name AS nom_classe',
+      'rc.mark AS statut_demande'
+    ])
+    .where('t.id = :id', { id });
+
+  return query.getRawMany();
+ }
+  async TutorDetail(id: number): Promise<any[] | null>{
+    const request = this.tutorRepository
+    .createQueryBuilder('t')
+    .innerJoin('t.user', 'u')
+    .select([
+    	'u.username AS tutor_name',
+    	't.id AS id',
+    	'u.ville',
+    	'u.quartier',
+    	'u.phone'
+    ])
+    .where('t.id = :id', { id });
+   return request.getRawMany();
+ }
+ 
+ async RequestDetail(id: number): Promise<any[] | null>{
+    const Request = this.reqclassRepository
+    .createQueryBuilder('rc')
+    .innerJoin('rc.user', 'u') // INNER JOIN users pour l'utilisateur simple
+    .innerJoin('rc.tutor', 't') // INNER JOIN teachers
+    .innerJoin('t.user', 'ut') // INNER JOIN users pour l'enseignant (via teachers)
+    .innerJoin('rc.classe', 'c') // INNER JOIN classes
+    .select([
+      'u.username AS nom_parent',
+      'u.id AS parent_id',
+      'u.phone AS phone_parent',
+      'c.name AS nom_classe',
+      'rc.mark AS statut_demande',
+      'u.ville AS ville_parent',
+      'u.quartier AS ville_quartier'
+    ])
+    .where('rc.id = :id', { id });
+
+  return Request.getRawMany();
+ }
+  
 }

@@ -4,6 +4,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from './entities/user.entity';
 import { Tutor } from '../tutors/entities/tutor.entity';
+import { Reqclass } from '../reqclass/entities/reqclass.entity'; // Chemin corrigé
+import { Classe } from '../classes/entities/classe.entity'; // Chemin corrigé
 
 @Injectable()
 export class UsersService {
@@ -13,6 +15,12 @@ export class UsersService {
     
     @InjectRepository(Tutor) // Ajoutez cette injection
     private tutorRepository: Repository<Tutor>,
+    
+    @InjectRepository(Reqclass) 
+    private reqclassRepository: Repository<Reqclass>,
+    
+    @InjectRepository(Classe)
+    private classeRepository: Repository<Classe>,
   ) {}
 
   // Trouver tous les utilisateurs
@@ -28,13 +36,35 @@ export class UsersService {
       where: { phone } 
     });
   }
+  // voir les differentes requetes
+  async viewRequest(id: number): Promise<any[]> {
+  const query = this.reqclassRepository
+    .createQueryBuilder('rc')
+    .innerJoin('rc.user', 'u') // INNER JOIN users pour l'utilisateur simple
+    .innerJoin('rc.tutor', 't') // INNER JOIN teachers
+    .innerJoin('t.user', 'ut') // INNER JOIN users pour l'enseignant (via teachers)
+    .innerJoin('rc.classe', 'c') // INNER JOIN classes
+    .select([
+      'ut.username AS nom_teacher',
+      'u.role AS role_utilisateur',
+      't.id AS teacher_id',
+      'ut.phone AS phone_teacher',
+      'c.name AS nom_classe',
+      'rc.mark AS statut_demande'
+    ])
+    .where('u.id = :id', { id });
 
+  return query.getRawMany();
+ }
   // Créer un utilisateur
   create(userData: Partial<User>): Promise<User> {
     const user = this.usersRepository.create(userData);
     return this.usersRepository.save(user);
   }
-  
+  create_request(reqclassData: Partial<Reqclass>): Promise<Reqclass> {
+    const reqClass = this.reqclassRepository.create(reqclassData);
+    return this.reqclassRepository.save(reqClass);
+  }  
   async Create_Tutor(userData: any): Promise<{
     user: User;
     tutor: Tutor;
