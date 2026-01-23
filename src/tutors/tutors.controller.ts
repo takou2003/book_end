@@ -31,6 +31,28 @@ export class TutorsController {
     }
   }
   
+  @Get('loadTutor/:ville')
+  async available(
+    @Param('ville') ville: string
+  ) {
+    try {
+      const tutors = await this.tutorsService.ville_tutor(ville);
+      
+      return {
+        success: true,
+        count: tutors.length, // Correction: 'tutors.length' pas 'filteredTutors'
+        total_found: tutors.length,
+        data: tutors // Correction: virgule au lieu de point-virgule
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: 'Erreur lors de la recherche des tuteurs',
+        error: process.env.NODE_ENV === 'development' ? error.message : undefined
+      };
+    }
+  }
+  
   @Get('RequestList/:id')
   async requestUser(@Param('id') id: number){ 
     try {

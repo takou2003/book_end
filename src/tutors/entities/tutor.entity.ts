@@ -10,6 +10,7 @@ import {
 import { User } from '../../users/entities/user.entity';
 import { Assclass } from '../../assclass/entities/assclass.entity';
 import { Reqclass } from '../../reqclass/entities/reqclass.entity';
+import { Notation } from '../../notations/entities/notations.entity';
 
 @Entity('teachers')
 export class Tutor {
@@ -44,4 +45,7 @@ export class Tutor {
   
   @OneToMany(() => Reqclass, (reqclass) => reqclass.tutor)
   reqclasse: Reqclass[]; // Notez le nom: assclasse (au singulier)
+  
+  @OneToMany(() => Notation, (notation) => notation.tutor)
+  notatione: Notation[]; // Notez le nom: assclasse (au singulier)
 }

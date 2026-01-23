@@ -1,13 +1,12 @@
-
 import { Controller, Get, Post, Body, Param, Query, HttpCode, HttpStatus } from '@nestjs/common';
-import { ClassesService } from './classes.service';
-@Controller('classes')
-export class ClassesController {
-  constructor(private readonly classesService: ClassesService) {}
-  @Get(':id')
-  async loadroom(@Param('id') id: number){ 
+import { SectionsService } from './sections.service';
+@Controller('sections')
+export class SectionsController {
+  constructor(private readonly sectionssService: SectionsService) {}
+  @Get()
+  async sectionLoading(){ 
     try {
-      const requests = await this.classesService.findAll(id);
+      const requests = await this.sectionssService.findAll();
       
       return {
         success: true,
@@ -18,9 +17,10 @@ export class ClassesController {
     } catch (error) {
       return {
         success: false,
-        message: 'Erreur lors de la recherche des classes',
+        message: 'Erreur lors de la recherche des requetes',
         error: process.env.NODE_ENV === 'development' ? error.message : undefined
       };
     }
   }
+
 }

@@ -11,6 +11,7 @@ import {
 } from 'typeorm';
 import { Tutor } from '../../tutors/entities/tutor.entity';
 import { Reqclass } from '../../reqclass/entities/reqclass.entity';
+import { Notation } from '../../notations/entities/notations.entity';
 
 @Entity('users')
 export class User {
@@ -92,4 +93,7 @@ export class User {
   
   @OneToMany(() => Reqclass, (reqclass) => reqclass.classe)
   reqclasse: Reqclass[]; // Nom de propriété au singulier
+  
+  @OneToMany(() => Notation, (notation) => notation.user)
+  notatione: Notation[]; // Notez le nom: assclasse (au singulier)
 }

@@ -8,6 +8,10 @@ import { TutorsModule } from './tutors/tutors.module';
 import { ClassesModule } from './classes/classes.module';
 import { AssclassModule } from './assclass/assclass.module';
 import { ReqclassModule } from './reqclass/reqclass.module';
+import { EnseignementsModule } from './enseignements/enseignements.module';
+import { SectionsModule } from './sections/sections.module';
+import { NotationsModule } from './notations/notations.module';
+import { CommentairesModule } from './commentaires/commentaires.module';
 
 @Module({
   imports: [
@@ -42,7 +46,11 @@ import { ReqclassModule } from './reqclass/reqclass.module';
     TutorsModule,
     ClassesModule,
     AssclassModule,
-    ReqclassModule
+    ReqclassModule,
+    EnseignementsModule,
+    SectionsModule,
+    NotationsModule,
+    CommentairesModule
   ],
   controllers: [AppController],
   providers: [AppService],

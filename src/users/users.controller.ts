@@ -47,6 +47,8 @@ export class UsersController {
       };
     }
   }
+  
+  @Get('ProfVille/:town')
 
   @Post('Save_User')
   async create(@Body() userData: any): Promise<{

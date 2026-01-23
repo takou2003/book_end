@@ -7,7 +7,7 @@ import { User } from '../users/entities/user.entity';
 import { Assclass } from '../assclass/entities/assclass.entity'; // Chemin corrigé
 import { Classe } from '../classes/entities/classe.entity'; // Chemin corrigé
 import { Reqclass } from '../reqclass/entities/reqclass.entity'; // Chemin corrigé
-
+import { Notation } from '../../notations/entities/notations.entity';
 
 
 @Injectable()
@@ -27,6 +27,9 @@ export class TutorsService {
     
     @InjectRepository(Reqclass) 
     private reqclassRepository: Repository<Reqclass>,
+    
+    @InjectRepository(Notation) 
+    private notationRepository: Repository<Notation>,
     
   ) {}
   
@@ -53,6 +56,25 @@ export class TutorsService {
       .andWhere('c.id = :classeId', { classeId })
       .andWhere('t.isActive = true');
 
+    return query.getRawMany();
+  }
+  
+  async ville_tutor(ville: string): Promise<any[]> {
+    const query = this.tutorRepository
+     .createQueryBuilder('t')
+     .innerJoin('t.user', 'u')
+     .innerJoin('t.assclasse', 'ac')
+     .innerJoin('ac.classe', 'c')
+     .select([
+       'u.username AS name',
+       'u.ville AS ville',
+       'u.quartier AS quartier',
+       'c.name AS classe',
+       't.id AS teacher_id'
+     ])
+     .where('u.ville = :ville', { ville }) // Ajout d'un filtre par ville si nécessaire
+     .andWhere('t.isActive = true')
+     .limit(5);
     return query.getRawMany();
   }
   // voir les differentes requetes
