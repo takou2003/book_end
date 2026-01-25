@@ -1,4 +1,4 @@
-// src/assclass/entities/assclass.entity.ts
+// src/notations/entities/notations.entity.ts
 import { 
   Entity, 
   PrimaryGeneratedColumn, 
@@ -10,7 +10,7 @@ import { Tutor } from '../../tutors/entities/tutor.entity';
 import { User } from '../../users/entities/user.entity';
 
 @Entity('notations')
-export class Notation { // Assclass (sans 'e' à la fin)
+export class Notation { 
   @PrimaryGeneratedColumn()
   id: number;
   

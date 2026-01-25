@@ -4,6 +4,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { UsersModule } from './users/users.module';
+import { ProfilsModule } from './users/UserProfil.module';
 import { TutorsModule } from './tutors/tutors.module';
 import { ClassesModule } from './classes/classes.module';
 import { AssclassModule } from './assclass/assclass.module';
@@ -50,7 +51,8 @@ import { CommentairesModule } from './commentaires/commentaires.module';
     EnseignementsModule,
     SectionsModule,
     NotationsModule,
-    CommentairesModule
+    CommentairesModule,
+    ProfilsModule
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -6,7 +6,9 @@ import {
   OneToOne,
   OneToMany, // AJOUTEZ CE IMPORT
   ManyToOne,
-  JoinColumn 
+  JoinColumn,
+  CreateDateColumn, 
+  UpdateDateColumn,
 } from 'typeorm';
 import { User } from '../../users/entities/user.entity';
 import { Classe } from '../../classes/entities/classe.entity';
@@ -37,12 +39,25 @@ export class Reqclass {
   isActive: boolean;
   
   @Column({ 
-    name: 'mark', 
-    type: 'float',
-    default: 1.0,
+    name: 'status', 
+    length: 15, // Même longueur
     nullable: false 
   })
-  mark: number;
+  status: string;
+  
+  @Column({ 
+    name: 'notation', 
+    type: 'float', // double precision dans PostgreSQL = float
+    nullable: false 
+  })
+  notation: number;
+  
+  @CreateDateColumn({ name: 'created_at' })
+  createdAt: Date;
+  
+  @UpdateDateColumn({ name: 'updated_at' })
+  updatedAt: Date;
+  
   @ManyToOne(() => User, (user) => user.reqclasse)
   @JoinColumn({ name: 'user_id' })
   user: User;

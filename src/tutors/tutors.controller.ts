@@ -1,7 +1,8 @@
 // src/tutors/tutors.controller.ts
-import { Controller, Get, Query, Param } from '@nestjs/common';
+import { Controller, Get, Query, Param, BadRequestException, Post, Body } from '@nestjs/common';
 import { TutorsService } from './tutors.service';
 import { Reqclass } from '../reqclass/entities/reqclass.entity'; // Chemin corrigé
+import { Commentaire } from '../commentaires/entities/commentaires.entity'; // Chemin corrigé
 import { Classe } from '../classes/entities/classe.entity'; // Chemin corrigé
 import { User } from '../users/entities/user.entity';
 @Controller('tutors')
@@ -72,6 +73,84 @@ export class TutorsController {
       };
     }
   }
+  @Get('comment/:id')
+  async commentUser(@Param('id') id: number){ 
+    try {
+      const requests = await this.tutorsService.commentList(id);
+      
+      return {
+        success: true,
+        count: requests.length, // 
+        total_found: requests.length,
+        data: requests // 
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: 'Erreur lors de la recherche des commentaires',
+        error: process.env.NODE_ENV === 'development' ? error.message : undefined
+      };
+    }
+  }
+  
+@Post('comment')
+  async createcomment(@Body() requestData: any): Promise<{
+    success: boolean;
+    data?: Commentaire;
+    message: string;
+    error?: string;
+  }> {
+    try {
+      console.log('Données reçues:', requestData); // Pour déboguer
+      
+      // Vérifiez que les données sont présentes
+      if (!requestData.user_id || !requestData.teacher_id || !requestData.texte) {
+        return {
+          success: false,
+          message: 'Données manquantes',
+          error: 'user_id, teacher_id et texte sont requis'
+        };
+      }
+
+      // Créez l'objet dans le format attendu par Commentaire
+      const commentData: Partial<Commentaire> = {
+        teacherId: Number(requestData.teacher_id), // Correction: teacher_id correspond à teacherId
+        userId: Number(requestData.user_id),       // Correction: user_id correspond à userId
+        texte: requestData.texte
+      };
+      
+      // Appelez la méthode
+      const comment = await this.tutorsService.create_comment(commentData);
+      
+      return {
+        success: true,
+        data: comment,
+        message: 'Commentaire créé avec succès'
+      };
+      
+    } catch (error) {
+      console.error('Erreur lors de la création du commentaire:', error);
+      
+      return {
+        success: false,
+        message: 'Erreur interne du serveur',
+        error: process.env.NODE_ENV === 'development' ? error.message : undefined
+      };
+    }
+  }
+@Post('Requestconfirm/:id')
+async confirmexchange(@Param('id') id: number) {
+  const result = await this.tutorsService.Acceptrequest(id);
+  
+  if (!result.success) {
+    throw new BadRequestException(result.message);
+  }
+  
+  return {
+    message: result.message,
+    data: result.data
+  };
+}
   @Get('tutorInfo/:id')
 	async tutorInfo(@Param('id') id: number) {
 	  try {

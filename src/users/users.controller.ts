@@ -5,6 +5,7 @@ import { User } from './entities/user.entity';
 import { Tutor } from '../tutors/entities/tutor.entity';
 import { Reqclass } from '../reqclass/entities/reqclass.entity'; // Chemin corrigé
 import { Classe } from '../classes/entities/classe.entity'; // Chemin corrigé
+import { Commentaire } from '../commentaires/entities/commentaires.entity'; // Chemin corrigé
 
 
 @Controller('users')
@@ -47,9 +48,44 @@ export class UsersController {
       };
     }
   }
-  
-  @Get('ProfVille/:town')
-
+  @Get('ActiveTeacherList/:id')
+  async Myteachers(@Param('id') id: number){ 
+    try {
+      const requests = await this.usersService.TutorsUser(id);
+      
+      return {
+        success: true,
+        count: requests.length, // 
+        total_found: requests.length,
+        data: requests // 
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: 'Erreur lors de la recherche des tutors actifs',
+        error: process.env.NODE_ENV === 'development' ? error.message : undefined
+      };
+    }
+  }
+  @Get('RelationTeacher/:id')
+  async ExchangeDetails(@Param('id') id: number){ 
+    try {
+      const requests = await this.usersService.RelationWithTutor(id);
+      
+      return {
+        success: true,
+        count: requests.length, // 
+        total_found: requests.length,
+        data: requests // 
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: 'Erreur lors de la recherche des informations de mon tutors',
+        error: process.env.NODE_ENV === 'development' ? error.message : undefined
+      };
+    }
+  }
   @Post('Save_User')
   async create(@Body() userData: any): Promise<{
     success: boolean;
@@ -97,8 +133,7 @@ export class UsersController {
 	      userId: Number(requestData.user_id), // Assurez-vous que c'est le bon nom
 	      teacherId: Number(requestData.teacher_id), // Assurez-vous que c'est le bon nom
 	      classeId: Number(requestData.classe_id), // Assurez-vous que c'est le bon nom
-	      isActive: true,
-	      mark: 1
+	      isActive: true
 	    };
 	    
 	    // Appelez la méthode
@@ -120,7 +155,7 @@ export class UsersController {
 	    };
 	  }
 	}
-  
+		
   @Post('Save_Tutor')
   @HttpCode(HttpStatus.CREATED)
   async createTutor(@Body() userData: any) {

@@ -7,8 +7,7 @@ import { User } from '../users/entities/user.entity';
 import { Assclass } from '../assclass/entities/assclass.entity'; // Chemin corrigé
 import { Classe } from '../classes/entities/classe.entity'; // Chemin corrigé
 import { Reqclass } from '../reqclass/entities/reqclass.entity'; // Chemin corrigé
-import { Notation } from '../../notations/entities/notations.entity';
-
+import { Commentaire } from '../commentaires/entities/commentaires.entity'; // Chemin corrigé
 
 @Injectable()
 export class TutorsService {
@@ -28,8 +27,8 @@ export class TutorsService {
     @InjectRepository(Reqclass) 
     private reqclassRepository: Repository<Reqclass>,
     
-    @InjectRepository(Notation) 
-    private notationRepository: Repository<Notation>,
+    @InjectRepository(Commentaire) 
+    private commentaireRepository: Repository<Commentaire>,
     
   ) {}
   
@@ -94,10 +93,61 @@ export class TutorsService {
       'c.name AS nom_classe',
       'rc.mark AS statut_demande'
     ])
-    .where('t.id = :id', { id });
+    .where('t.id = :id', { id })
+    .andWhere('rc.isActive = true');
 
   return query.getRawMany();
  }
+
+ async commentList(id: number): Promise<any[]> {
+  const query = this.commentaireRepository
+    .createQueryBuilder('cm')
+    .innerJoin('cm.user', 'u') // INNER JOIN users pour l'utilisateur simple
+    .innerJoin('cm.tutor', 't') // INNER JOIN teachers
+    .innerJoin('t.user', 'ut') // INNER JOIN users pour l'enseignant (via teachers)
+    .select([
+      'u.username AS parent',
+      'cm.texte AS commentaire',
+      'cm.createdAt AS date'
+    ])
+    .where('t.id = :id', { id });
+  return query.getRawMany();
+ }
+ create_comment(commentData: Partial<Commentaire>): Promise<Commentaire> {
+    const comment = this.commentaireRepository.create(commentData);
+    return this.commentaireRepository.save(comment);
+  }
+ async Acceptrequest(id: number): Promise<{ success: boolean; message: string; data?: any }> {
+  try {
+    const result = await this.reqclassRepository.update(
+      { id: id },
+      { 
+        status: 'accepted',
+        updatedAt: new Date()
+      }
+    );
+
+    if (result.affected === 0) {
+      return {
+        success: false,
+        message: 'Requête non trouvée'
+      };
+    }
+
+    const updatedRequest = await this.reqclassRepository.findOne({ where: { id } });
+
+    return {
+      success: true,
+      message: 'Requête acceptée',
+      data: updatedRequest
+    };
+  } catch (error) {
+    return {
+      success: false,
+      message: 'Erreur lors de l\'acceptation'
+    };
+  }
+}
   async TutorDetail(id: number): Promise<any[] | null>{
     const request = this.tutorRepository
     .createQueryBuilder('t')
@@ -125,9 +175,9 @@ export class TutorsService {
       'u.id AS parent_id',
       'u.phone AS phone_parent',
       'c.name AS nom_classe',
-      'rc.mark AS statut_demande',
       'u.ville AS ville_parent',
-      'u.quartier AS ville_quartier'
+      'u.quartier AS ville_quartier',
+      'rc.status AS status' 
     ])
     .where('rc.id = :id', { id });
 

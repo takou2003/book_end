@@ -50,10 +50,51 @@ export class UsersService {
       't.id AS teacher_id',
       'ut.phone AS phone_teacher',
       'c.name AS nom_classe',
-      'rc.mark AS statut_demande'
+      'rc.status AS status'
     ])
     .where('u.id = :id', { id });
 
+  return query.getRawMany();
+ }
+ 
+ async TutorsUser(id: number): Promise<any[]> {
+  const status = "accepted";
+  const query = this.reqclassRepository
+    .createQueryBuilder('rc')
+    .innerJoin('rc.user', 'u') // INNER JOIN users pour l'utilisateur simple
+    .innerJoin('rc.tutor', 't') // INNER JOIN teachers
+    .innerJoin('t.user', 'ut') // INNER JOIN users pour l'enseignant (via teachers)
+    .innerJoin('rc.classe', 'c') // INNER JOIN classes
+    .select([
+      'ut.username AS tutor_name',
+      'ut.quartier AS quartier',
+      'c.name AS class_name',
+      'rc.status AS status',
+      'rc.id AS relation_id'
+    ])
+    .where('u.id = :id', { id })
+    .andWhere('rc.status = :status', { status });
+    
+  return query.getRawMany();
+ }
+ 
+ async RelationWithTutor(id: number): Promise<any[]> {
+  const query = this.reqclassRepository
+    .createQueryBuilder('rc')
+    .innerJoin('rc.user', 'u') // INNER JOIN users pour l'utilisateur simple
+    .innerJoin('rc.tutor', 't') // INNER JOIN teachers
+    .innerJoin('t.user', 'ut') // INNER JOIN users pour l'enseignant (via teachers)
+    .innerJoin('rc.classe', 'c') // INNER JOIN classes
+    .select([
+      'ut.username AS tutor_name',
+      'ut.quartier AS quartier',
+      'c.name AS class_name',
+      'ut.phone AS tutor_phone',
+      'rc.updatedAt AS since',
+      'rc.status AS status'
+    ])
+    .where('rc.id = :id', { id });
+    
   return query.getRawMany();
  }
   // Créer un utilisateur
