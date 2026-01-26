@@ -9,6 +9,7 @@ import {
 } from 'typeorm';
 import { User } from '../../users/entities/user.entity';
 import { Assclass } from '../../assclass/entities/assclass.entity';
+import { Verification } from '../../verifications/entities/verification.entity';
 import { Reqclass } from '../../reqclass/entities/reqclass.entity';
 import { Notation } from '../../notations/entities/notations.entity';
 import { Commentaire } from '../../commentaires/entities/commentaires.entity'; // Chemin corrigé
@@ -43,6 +44,10 @@ export class Tutor {
   
   @OneToMany(() => Assclass, (assclass) => assclass.tutor)
   assclasse: Assclass[]; // Notez le nom: assclasse (au singulier)
+  
+  
+  @OneToMany(() => Verification, (verification) => verification.tutor)
+  verificationed: Verification[]; // Notez le nom: assclasse (au singulier)
   
   @OneToMany(() => Reqclass, (reqclass) => reqclass.tutor)
   reqclasse: Reqclass[]; // Notez le nom: assclasse (au singulier)

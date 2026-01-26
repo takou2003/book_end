@@ -5,6 +5,7 @@ import { Repository } from 'typeorm'; // AJOUTEZ
 import { Tutor } from './entities/tutor.entity';
 import { User } from '../users/entities/user.entity';
 import { Assclass } from '../assclass/entities/assclass.entity'; // Chemin corrigé
+import { Verification } from '../verifications/entities/verification.entity'; // Chemin corrigé
 import { Classe } from '../classes/entities/classe.entity'; // Chemin corrigé
 import { Reqclass } from '../reqclass/entities/reqclass.entity'; // Chemin corrigé
 import { Commentaire } from '../commentaires/entities/commentaires.entity'; // Chemin corrigé
@@ -117,12 +118,31 @@ export class TutorsService {
     const comment = this.commentaireRepository.create(commentData);
     return this.commentaireRepository.save(comment);
   }
- async Acceptrequest(id: number): Promise<{ success: boolean; message: string; data?: any }> {
+  
+  create_assclass(assData: Partial<Assclass>): Promise<Assclass> {
+    const assclass = this.assClassRepository.create(assData);
+    return this.assClassRepository.save(assclass);
+  }
+  
+async notation(
+  id: number, 
+  notation1: number, 
+  teacher_id: number
+): Promise<{ success: boolean; message: string; data?: any; average?: number }> {
   try {
+    // 1. Vérifier si la notation est valide (entre 0 et 5 ou 0 et 20 selon votre échelle)
+    if (notation1 < 0 || notation1 > 5) { // Ajustez selon votre échelle de notation
+      return {
+        success: false,
+        message: 'La notation doit être entre 0 et 5'
+      };
+    }
+
+    // 2. Mettre à jour la notation de la reqclass spécifique
     const result = await this.reqclassRepository.update(
       { id: id },
       { 
-        status: 'accepted',
+        notation: notation1,
         updatedAt: new Date()
       }
     );
@@ -134,8 +154,144 @@ export class TutorsService {
       };
     }
 
-    const updatedRequest = await this.reqclassRepository.findOne({ where: { id } });
+    // 3. Calculer la moyenne des notations pour ce teacher_id
+    const averageResult = await this.calculateTeacherAverage(teacher_id);
 
+    // 4. Mettre à jour le mark du tutor (dans la table teachers)
+    await this.updateTutorMark(teacher_id, averageResult.average);
+
+    // 5. Récupérer la reqclass mise à jour
+    const updatedNote = await this.reqclassRepository.findOne({ 
+      where: { id },
+      relations: ['user', 'tutor', 'classe']
+    });
+
+    return {
+      success: true,
+      message: 'Note mise à jour et moyenne calculée',
+      data: updatedNote,
+      average: averageResult.average
+    };
+  } catch (error) {
+    console.error('Erreur lors de la notation:', error);
+    return {
+      success: false,
+      message: 'Erreur lors de la mise à jour de la notation'
+    };
+  }
+}
+
+/**
+ * Calculer la moyenne des notations pour un teacher_id
+ */
+private async calculateTeacherAverage(teacher_id: number): Promise<{ 
+  average: number; 
+  total: number; 
+  count: number 
+}> {
+  const query = this.reqclassRepository
+    .createQueryBuilder('reqclass')
+    .select('AVG(reqclass.notation)', 'average')
+    .addSelect('SUM(reqclass.notation)', 'total')
+    .addSelect('COUNT(reqclass.id)', 'count')
+    .where('reqclass.teacher_id = :teacher_id', { teacher_id })
+    .andWhere('reqclass.notation > 0') // Exclure les notations nulles si nécessaire
+    .andWhere('reqclass.is_active = true'); // Seulement les requêtes actives
+
+  const result = await query.getRawOne();
+
+  return {
+    average: parseFloat(result.average) || 0,
+    total: parseFloat(result.total) || 0,
+    count: parseInt(result.count) || 0
+  };
+}
+
+/**
+ * Mettre à jour le mark du tutor dans la table teachers
+ */
+private async updateTutorMark(teacher_id: number, average: number): Promise<void> {
+  // Supposons que vous avez accès au repository teachers
+  // Si ce n'est pas dans le même service, injectez TeachersRepository
+  await this.tutorRepository.update(
+    { id: teacher_id },
+    { 
+      mark: average, // Assurez-vous que la colonne s'appelle 'mark' dans teachers
+    }
+  );
+}
+  
+ async Acceptrequest(id: number): Promise<{ success: boolean; message: string; data?: any }> {
+  try {
+    const result = await this.reqclassRepository.update(
+      { id: id },
+      { 
+        status: 'accepted',
+        updatedAt: new Date()
+      }
+    );
+    if (result.affected === 0) {
+      return {
+        success: false,
+        message: 'Requête non trouvée'
+      };
+    }
+    const updatedRequest = await this.reqclassRepository.findOne({ where: { id } });
+    return {
+      success: true,
+      message: 'Requête acceptée',
+      data: updatedRequest
+    };
+  } catch (error) {
+    return {
+      success: false,
+      message: 'Erreur lors de l\'acceptation'
+    };
+  }
+}
+async AcceptTeacher(id: number): Promise<{ success: boolean; message: string; data?: any }> {
+  try {
+    const result = await this.tutorRepository.update(
+      { id: id },
+      { 
+        isActive: true,
+      }
+    );
+    if (result.affected === 0) {
+      return {
+        success: false,
+        message: 'tutor non trouvée'
+      };
+    }
+    const updatedTutor = await this.tutorRepository.findOne({ where: { id } });
+    return {
+      success: true,
+      message: 'Requête acceptée',
+      data: updatedTutor
+    };
+  } catch (error) {
+    return {
+      success: false,
+      message: 'Erreur lors de l\'acceptation'
+    };
+  }
+}
+async Deniedrequest(id: number): Promise<{ success: boolean; message: string; data?: any }> {
+  try {
+    const result = await this.reqclassRepository.update(
+      { id: id },
+      { 
+        status: 'denied',
+        updatedAt: new Date()
+      }
+    );
+    if (result.affected === 0) {
+      return {
+        success: false,
+        message: 'Requête non trouvée'
+      };
+    }
+    const updatedRequest = await this.reqclassRepository.findOne({ where: { id } });
     return {
       success: true,
       message: 'Requête acceptée',

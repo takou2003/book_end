@@ -89,6 +89,20 @@ export class User {
   })
   phone: string;
   
+  @Column({ 
+    name: 'fonction', 
+    length: 15, // Même longueur
+    nullable: false 
+  })
+  fonction: string;
+  
+  @Column({ 
+    name: 'path_image', 
+    length: 50, // Même longueur
+    nullable: false 
+  })
+  pathImage: string;
+  
   @OneToOne(() => Tutor, (tutor) => tutor.user)
   tutor: Tutor; // Relation simple sans configuration de jointure;
   

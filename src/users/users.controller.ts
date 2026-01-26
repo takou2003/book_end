@@ -1,5 +1,12 @@
 // src/users/users.controller.ts
-import { Controller, Get, Post, Body, Param, Query, HttpCode, HttpStatus } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Query, HttpCode, HttpStatus, UploadedFile,
+  UseInterceptors,
+  ParseIntPipe,
+  BadRequestException} from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { diskStorage } from 'multer';
+import * as path from 'path';
+import { v4 as uuidv4 } from 'uuid';
 import { UsersService } from './users.service';
 import { User } from './entities/user.entity';
 import { Tutor } from '../tutors/entities/tutor.entity';
@@ -167,7 +174,39 @@ export class UsersController {
       return this.formatErrorResponse(error, 'Erreur lors de la création du tutor');
     }
   }
+  @Post(':id/upload-profile')
+  @UseInterceptors(
+    FileInterceptor('image', {
+      storage: diskStorage({
+        destination: './temp',
+        filename: (req, file, callback) => {
+          const uniqueName = `${uuidv4()}${path.extname(file.originalname)}`;
+          callback(null, uniqueName);
+        },
+      }),
+      fileFilter: (req, file, callback) => {
+        const allowedMimes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+        if (allowedMimes.includes(file.mimetype)) {
+          callback(null, true);
+        } else {
+          callback(new BadRequestException('Type de fichier non autorisé'), false);
+        }
+      },
+      limits: {
+        fileSize: 5 * 1024 * 1024, // 5MB
+      },
+    }),
+  )
+  async uploadProfileImage(
+    @Param('id', ParseIntPipe) id: number,
+    @UploadedFile() file: Express.Multer.File,
+  ) {
+    if (!file) {
+      throw new BadRequestException('Aucun fichier uploadé');
+    }
 
+    return this.usersService.updateProfileImage(id, file);
+  }
   // Ajoutez ces méthodes manquantes
   private formatTutorResponse(result: { user: User; tutor: any; success: boolean }) {
     return {

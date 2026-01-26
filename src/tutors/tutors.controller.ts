@@ -5,6 +5,7 @@ import { Reqclass } from '../reqclass/entities/reqclass.entity'; // Chemin corri
 import { Commentaire } from '../commentaires/entities/commentaires.entity'; // Chemin corrigé
 import { Classe } from '../classes/entities/classe.entity'; // Chemin corrigé
 import { User } from '../users/entities/user.entity';
+import { Assclass } from '../assclass/entities/assclass.entity';
 @Controller('tutors')
 export class TutorsController {
   constructor(private readonly tutorsService: TutorsService) {}
@@ -93,7 +94,7 @@ export class TutorsController {
     }
   }
   
-@Post('comment')
+  @Post('comment')
   async createcomment(@Body() requestData: any): Promise<{
     success: boolean;
     data?: Commentaire;
@@ -138,9 +139,81 @@ export class TutorsController {
       };
     }
   }
+  @Post('AddTutorInclasse')
+  async createAssclass(@Body() requestData: any): Promise<{
+    success: boolean;
+    data?: Assclass;
+    message: string;
+    error?: string;
+  }> {
+    try {
+      console.log('Données reçues:', requestData); // Pour déboguer
+      
+      // Vérifiez que les données sont présentes
+      if (!requestData.teacher_id || !requestData.classe_id ) {
+        return {
+          success: false,
+          message: 'Données manquantes',
+          error: ' teacher_id et classe_id sont requis'
+        };
+      }
+
+      // Créez l'objet dans le format attendu par Commentaire
+      const assclassData: Partial<Assclass> = {
+        teacherId: Number(requestData.teacher_id), // Correction: teacher_id correspond à teacherId
+        classeId: Number(requestData.classe_id)       // Correction: user_id correspond à userId
+      };
+      
+      // Appelez la méthode
+      const assclass = await this.tutorsService.create_assclass(assclassData);
+      
+      return {
+        success: true,
+        data: assclass,
+        message: 'association créé avec succès'
+      };
+      
+    } catch (error) {
+      console.error('Erreur lors de la création de assclass:', error);
+      
+      return {
+        success: false,
+        message: 'Erreur interne du serveur',
+        error: process.env.NODE_ENV === 'development' ? error.message : undefined
+      };
+    }
+  }
 @Post('Requestconfirm/:id')
 async confirmexchange(@Param('id') id: number) {
   const result = await this.tutorsService.Acceptrequest(id);
+  
+  if (!result.success) {
+    throw new BadRequestException(result.message);
+  }
+  
+  return {
+    message: result.message,
+    data: result.data
+  };
+}
+
+@Post('Teacherconfirm/:id')
+async confirmteacher(@Param('id') id: number) {
+  const result = await this.tutorsService.AcceptTeacher(id);
+  
+  if (!result.success) {
+    throw new BadRequestException(result.message);
+  }
+  
+  return {
+    message: result.message,
+    data: result.data
+  };
+}
+
+@Post('RequestDenied/:id')
+async deniedxchange(@Param('id') id: number) {
+  const result = await this.tutorsService.Deniedrequest(id);
   
   if (!result.success) {
     throw new BadRequestException(result.message);

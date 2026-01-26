@@ -5,6 +5,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { UsersModule } from './users/users.module';
 import { ProfilsModule } from './users/UserProfil.module';
+import { DocumentsModule } from './tutors/TutorDocument.module';
 import { TutorsModule } from './tutors/tutors.module';
 import { ClassesModule } from './classes/classes.module';
 import { AssclassModule } from './assclass/assclass.module';
@@ -13,6 +14,7 @@ import { EnseignementsModule } from './enseignements/enseignements.module';
 import { SectionsModule } from './sections/sections.module';
 import { NotationsModule } from './notations/notations.module';
 import { CommentairesModule } from './commentaires/commentaires.module';
+import { VerificationsModule } from './verifications/verifications.module';
 
 @Module({
   imports: [
@@ -52,7 +54,10 @@ import { CommentairesModule } from './commentaires/commentaires.module';
     SectionsModule,
     NotationsModule,
     CommentairesModule,
-    ProfilsModule
+    ProfilsModule,
+    DocumentsModule,
+    VerificationsModule
+    
   ],
   controllers: [AppController],
   providers: [AppService],
