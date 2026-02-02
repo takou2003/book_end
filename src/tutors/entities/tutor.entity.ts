@@ -33,7 +33,7 @@ export class Tutor {
   @Column({ 
     name: 'is_active', 
     type: 'boolean',
-    default: true,
+    default: false,
     nullable: false 
   })
   isActive: boolean;

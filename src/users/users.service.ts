@@ -7,10 +7,15 @@ import {  createWriteStream, existsSync, mkdirSync, unlinkSync, readFileSync } f
 import { join } from 'path';
 import { v4 as uuidv4 } from 'uuid';
 import * as path from 'path';
+import * as bcrypt from 'bcrypt';
 import { User } from './entities/user.entity';
 import { Tutor } from '../tutors/entities/tutor.entity';
 import { Reqclass } from '../reqclass/entities/reqclass.entity'; 
 import { Classe } from '../classes/entities/classe.entity'; 
+import { LoginDto } from './dto/login.dto';
+import { BaseUserDto } from './dto/base-user.dto';
+import { CreateParentDto } from './dto/create-parent.dto';
+import { CreateTutorDto } from './dto/create-tutor.dto';
 
 @Injectable()
 export class UsersService {
@@ -40,12 +45,78 @@ export class UsersService {
     });
   }
 
-  // Trouver par téléphone
-  findByPhone(phone: string): Promise<User | null> {
-    return this.usersRepository.findOne({ 
-      where: { phone } 
-    });
+ async signIn(loginData: LoginDto) {
+  const { phone, mail, password } = loginData;
+
+  if (!password || (!phone && !mail)) {
+    throw new BadRequestException('Identifiants invalides');
   }
+
+  const user = await this.usersRepository.findOne({
+    where: phone ? { phone } : { mail },
+  });
+
+  if (!user) {
+    throw new NotFoundException('Utilisateur non trouvé');
+  }
+
+  const isPasswordValid = await bcrypt.compare(password, user.password);
+
+  if (!isPasswordValid) {
+    throw new BadRequestException('Mot de passe incorrect');
+  }
+
+  // =====================
+  // CAS PARENT
+  // =====================
+  if (user.fonction === 'parent') {
+    return {
+      success: true,
+      role: 'parent',
+      user: this.cleanUser(user),
+    };
+  }
+
+  // =====================
+  // CAS TUTOR
+  // =====================
+  if (user.fonction === 'tutor') {
+    const tutor = await this.tutorRepository.findOne({
+      where: { userId: user.id },
+    });
+
+    return {
+      success: true,
+      role: 'tutor',
+      user: this.cleanUser(user),
+      tutor,
+    };
+  }
+
+  return {
+    success: true,
+    user: this.cleanUser(user),
+  };
+}
+ private cleanUser(user: User) {
+  const {
+    password,
+    ...safeUser
+  } = user;
+
+  return {
+    id: safeUser.id,
+    username: safeUser.username,
+    phone: safeUser.phone,
+    mail: safeUser.mail,
+    ville: safeUser.ville,
+    quartier: safeUser.quartier,
+    role: safeUser.role,
+    fonction: safeUser.fonction,
+    pathImage: safeUser.pathImage,
+  };
+}
+
   // voir les differentes requetes
   async viewRequest(id: number): Promise<any[]> {
   const query = this.reqclassRepository
@@ -111,52 +182,60 @@ export class UsersService {
   return query.getRawMany();
  }
   // Créer un utilisateur
-  create(userData: Partial<User>): Promise<User> {
-    const user = this.usersRepository.create(userData);
-    return this.usersRepository.save(user);
+  async create(userData: Partial<User>): Promise<User> {
+  if (!userData.password) {
+    throw new BadRequestException('Mot de passe requis');
   }
+
+  const salt = await bcrypt.genSalt(10);
+  const hashedPassword = await bcrypt.hash(userData.password, salt);
+
+  const user = this.usersRepository.create({
+    ...userData,
+    password: hashedPassword,
+  });
+
+  return this.usersRepository.save(user);
+}
+
   create_request(reqclassData: Partial<Reqclass>): Promise<Reqclass> {
     const reqClass = this.reqclassRepository.create(reqclassData);
     return this.reqclassRepository.save(reqClass);
   }  
-  async Create_Tutor(userData: any): Promise<{
-    user: User;
-    tutor: Tutor;
-    success: boolean;
-  }> {
-    try {
-      // Étape 1: Créer l'utilisateur
-      const user = await this.create({
-        username: userData.username,
-        password: userData.password,
-        ville: userData.ville,
-        quartier: userData.quartier,
-        latitude: userData.latitude,
-        longitude: userData.longitude,
-        role: userData.role || 1,
-        phone: userData.phone,
-      });
-      
-      // Étape 2: Créer le tutor avec l'ID de l'utilisateur
-      const tutor = this.tutorRepository.create({
-        mark: userData.mark || 1.0, // Note par défaut
-        userId: user.id, // L'ID de l'utilisateur créé
-        isActive: userData.isActive !== undefined ? userData.isActive : true,
-      });
-      
-      const savedTutor = await this.tutorRepository.save(tutor);
-      
-      return {
-        user,
-        tutor: savedTutor,
-        success: true,
-      };
+async createParent(dto: CreateParentDto) {
+  const user = await this.create({
+    ...dto,
+    role: 0,
+    fonction: 'parent',
+  });
 
-    } catch (error) {
-      console.error('Erreur lors de la création du tutor:', error);
-      throw error;
-    }
-  }
+  return {
+    success: true,
+    user: this.cleanUser(user),
+  };
+}
+
+async createTutor(dto: CreateTutorDto) {
+  const user = await this.create({
+    ...dto,
+    role: 1,
+    fonction: 'tutor',
+  });
+
+  const tutor = await this.tutorRepository.save(
+    this.tutorRepository.create({
+      userId: user.id,
+      mark: dto.mark ?? 1.0,
+      isActive: dto.isActive ?? false,
+    }),
+  );
+
+  return {
+    success: true,
+    user: this.cleanUser(user),
+    tutor,
+  };
+}
   
   /**
    * Mettre à jour l'image de profil d'un utilisateur

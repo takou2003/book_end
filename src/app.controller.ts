@@ -1,4 +1,4 @@
-import { Controller, Get } from '@nestjs/common';
+import { Controller, Get, Res } from '@nestjs/common';
 import { AppService } from './app.service';
 import { Connection } from 'typeorm'; // Ajoutez cette importation
 
@@ -10,10 +10,14 @@ export class AppController {
   	private readonly connection: Connection
   	) {}
 
-  @Get()
-  getHello(): string {
-    return this.appService.getHello();
-  }
+  @Get('mail')
+ async sendMailer() {
+  await this.appService.sendMail();
+  return {
+    message: 'Mail envoyé',
+  };
+ }
+
   
   @Get('health')
   async healthCheck() {

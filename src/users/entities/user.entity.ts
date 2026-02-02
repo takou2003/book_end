@@ -28,7 +28,7 @@ export class User {
 
   @Column({ 
     name: 'password', 
-    length: 50, // Même longueur
+    length: 255, // Même longueur
     nullable: false 
   })
   password: string;
@@ -99,9 +99,17 @@ export class User {
   @Column({ 
     name: 'path_image', 
     length: 50, // Même longueur
-    nullable: false 
+    nullable: false,
+    default: 'noPicture.jpg',
   })
   pathImage: string;
+  
+  @Column({ 
+    name: 'mail', 
+    length: 250, // Même longueur
+    nullable: true 
+  })
+  mail: string;
   
   @OneToOne(() => Tutor, (tutor) => tutor.user)
   tutor: Tutor; // Relation simple sans configuration de jointure;

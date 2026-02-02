@@ -13,28 +13,21 @@ import { Tutor } from '../tutors/entities/tutor.entity';
 import { Reqclass } from '../reqclass/entities/reqclass.entity'; // Chemin corrigé
 import { Classe } from '../classes/entities/classe.entity'; // Chemin corrigé
 import { Commentaire } from '../commentaires/entities/commentaires.entity'; // Chemin corrigé
+import { BaseUserDto } from './dto/base-user.dto';
+import { CreateParentDto } from './dto/create-parent.dto';
+import { CreateTutorDto } from './dto/create-tutor.dto';
+import { LoginDto } from './dto/login.dto';
 
 
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
-  @Get('SignIn/phone/:phone')
-  async findByPhone(@Param('phone') phone: string): Promise<{
-    success: boolean;
-    found: boolean;
-    data: User | null;
-    timestamp: string;
-  }> {
-    const users = await this.usersService.findByPhone(phone);
-    
-    return {
-      success: true,
-      found: !!users,
-      data: users,
-      timestamp: new Date().toISOString(),
-    };
-  }
+@Post('SignIn')
+@HttpCode(HttpStatus.OK)
+async signIn(@Body() loginDto: LoginDto) {
+  return this.usersService.signIn(loginDto);
+}
   
   @Get('RequestList/:id')
   async requestUser(@Param('id') id: number){ 
@@ -93,29 +86,16 @@ export class UsersController {
       };
     }
   }
-  @Post('Save_User')
-  async create(@Body() userData: any): Promise<{
-    success: boolean;
-    data: User;
-    message: string;
-  }> {
-    const user = await this.usersService.create({
-      username: userData.username,
-      password: userData.password,
-      ville: userData.ville,
-      quartier: userData.quartier,
-      latitude: userData.latitude,
-      longitude: userData.longitude,
-      role: userData.role || 0,
-      phone: userData.phone,
-    });
-    
-    return {
-      success: true,
-      data: user,
-      message: 'User created successfully'
-    };
-  }
+@Post('register/parent')
+async createParent(@Body() dto: CreateParentDto) {
+  return this.usersService.createParent(dto);
+}
+
+@Post('register/tutor')
+async createTutor(@Body() dto: CreateTutorDto) {
+  return this.usersService.createTutor(dto);
+}
+
   @Post('Make_request')
 	async createrequest(@Body() requestData: any): Promise<{
 	  success: boolean;
@@ -163,17 +143,7 @@ export class UsersController {
 	  }
 	}
 		
-  @Post('Save_Tutor')
-  @HttpCode(HttpStatus.CREATED)
-  async createTutor(@Body() userData: any) {
-    try {
-      const result = await this.usersService.Create_Tutor(userData);
-      
-      return this.formatTutorResponse(result);
-    } catch (error) {
-      return this.formatErrorResponse(error, 'Erreur lors de la création du tutor');
-    }
-  }
+
   @Post(':id/upload-profile')
   @UseInterceptors(
     FileInterceptor('image', {

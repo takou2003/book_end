@@ -1,8 +1,11 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { MailerModule } from '@nestjs-modules/mailer';
+
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+
 import { UsersModule } from './users/users.module';
 import { ProfilsModule } from './users/UserProfil.module';
 import { DocumentsModule } from './tutors/TutorDocument.module';
@@ -15,16 +18,18 @@ import { SectionsModule } from './sections/sections.module';
 import { NotationsModule } from './notations/notations.module';
 import { CommentairesModule } from './commentaires/commentaires.module';
 import { VerificationsModule } from './verifications/verifications.module';
+import { AuthersModule } from './authers/authers.module';
+
 
 @Module({
   imports: [
-  	// Configuration des variables d'environnement
+    // ENV
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: '.env',
     }),
-    
-    // Configuration TypeORM
+
+    // DB
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
@@ -37,14 +42,17 @@ import { VerificationsModule } from './verifications/verifications.module';
         database: configService.get('DB_DATABASE', 'first_db'),
         entities: [__dirname + '/**/*.entity{.ts,.js}'],
         synchronize: configService.get('DB_SYNCHRONIZE', 'true') === 'true',
-        logging: false, // Affiche les requêtes SQL dans la console
+        logging: false,
         extra: {
-          ssl: configService.get('NODE_ENV') === 'production' 
-            ? { rejectUnauthorized: false } 
-            : false,
+          ssl:
+            configService.get('NODE_ENV') === 'production'
+              ? { rejectUnauthorized: false }
+              : false,
         },
       }),
     }),
+
+    // Modules
     UsersModule,
     TutorsModule,
     ClassesModule,
@@ -56,10 +64,28 @@ import { VerificationsModule } from './verifications/verifications.module';
     CommentairesModule,
     ProfilsModule,
     DocumentsModule,
-    VerificationsModule
-    
+    VerificationsModule,
+
+    // Mail
+    MailerModule.forRoot({
+  transport: {
+    host: process.env.EMAIL_HOST,
+    port: Number(process.env.EMAIL_PORT),
+    secure: false, // TLS
+    auth: {
+      user: process.env.EMAIL_USERNAME,
+      pass: process.env.EMAIL_PASSWORD,
+    },
+  },
+  defaults: {
+    from: `"BookUp" <${process.env.EMAIL_USERNAME}>`,
+  },
+ }),
+
+    AuthersModule,
   ],
   controllers: [AppController],
   providers: [AppService],
 })
 export class AppModule {}
+
