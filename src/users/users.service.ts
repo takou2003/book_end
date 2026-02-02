@@ -207,6 +207,8 @@ async createParent(dto: CreateParentDto) {
     ...dto,
     role: 0,
     fonction: 'parent',
+    latitude: dto.latitude || 0.0,     // ← GARANTIR LA VALEUR
+    longitude: dto.longitude || 0.0,   // ← GARANTIR LA VALEUR
   });
 
   return {
@@ -220,6 +222,8 @@ async createTutor(dto: CreateTutorDto) {
     ...dto,
     role: 1,
     fonction: 'tutor',
+    latitude: dto.latitude || 0.0,     // ← GARANTIR LA VALEUR
+    longitude: dto.longitude || 0.0,   // ← GARANTIR LA VALEUR
   });
 
   const tutor = await this.tutorRepository.save(

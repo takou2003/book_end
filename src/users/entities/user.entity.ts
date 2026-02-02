@@ -50,14 +50,16 @@ export class User {
   @Column({ 
     name: 'latitude', 
     type: 'float', // double precision dans PostgreSQL = float
-    nullable: false 
+    nullable: false,
+    default: 0.0  // ← AJOUTER CETTE LIGNE 
   })
   latitude: number;
   
   @Column({ 
     name: 'longitude', 
     type: 'float', // double precision dans PostgreSQL = float
-    nullable: false 
+    nullable: false,
+    default: 0.0  // ← AJOUTER CETTE LIGNE 
   })
   longitude: number;
 
