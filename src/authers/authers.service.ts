@@ -2,6 +2,7 @@
 import {
   Injectable,
   BadRequestException,
+  ConflictException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -26,16 +27,28 @@ export class AuthersService {
 
   // 📩 ENVOI / RENVOI
   async sendOrResendCode(email: string) {
+    // Vérifier si l'identifiant a déjà été vérifié
+    const alreadyVerified = await this.repo.findOne({
+      where: { 
+        identifiant: email,
+        used: true,
+      },
+    });
+
+    if (alreadyVerified) {
+      throw new ConflictException('Cet identifiant a déjà été vérifié');
+    }
+
+    // Chercher un enregistrement existant non utilisé
     let auther = await this.repo.findOne({
-      where: { identifiant: email },
+      where: { 
+        identifiant: email,
+        used: false,
+      },
     });
 
     // 🔁 code encore valide → renvoi simple
-    if (
-      auther &&
-      !auther.used &&
-      auther.expiresAt > new Date()
-    ) {
+    if (auther && auther.expiresAt > new Date()) {
       try {
         await this.mailer.sendMail({
           to: email,
@@ -54,19 +67,25 @@ export class AuthersService {
     const expiresAt = this.getExpiration();
 
     if (auther) {
-      auther.code = code;
-      auther.expiresAt = expiresAt;
-      auther.used = false;
+      // UPDATE du code existant
+      await this.repo.update(
+        { id: auther.id },
+        { 
+          code: code,
+          expiresAt: expiresAt,
+          used: false 
+        }
+      );
     } else {
+      // Création avec save (pour un nouvel enregistrement)
       auther = this.repo.create({
         identifiant: email,
         code,
         expiresAt,
         used: false,
       });
+      await this.repo.save(auther);
     }
-
-    await this.repo.save(auther);
 
     await this.mailer.sendMail({
       to: email,
@@ -77,18 +96,18 @@ export class AuthersService {
     return { message: 'Code envoyé' };
   }
 
-  // ✅ VÉRIFICATION
+  // ✅ VÉRIFICATION DU CODE (avec UPDATE)
   async verifyCode(email: string, code: string) {
+    // Chercher l'enregistrement non utilisé
     const auther = await this.repo.findOne({
-      where: { identifiant: email },
+      where: { 
+        identifiant: email,
+        used: false,
+      },
     });
 
     if (!auther) {
-      throw new BadRequestException('Code introuvable');
-    }
-
-    if (auther.used) {
-      throw new BadRequestException('Code déjà utilisé');
+      throw new BadRequestException('Code introuvable ou déjà utilisé');
     }
 
     if (auther.expiresAt < new Date()) {
@@ -99,14 +118,36 @@ export class AuthersService {
       throw new BadRequestException('Code incorrect');
     }
 
-    // 🔒 INVALIDATION IMMÉDIATE
-    auther.used = true;
-    await this.repo.save(auther);
+    // 🔒 UPDATE pour marquer comme utilisé
+    const updateResult = await this.repo.update(
+      { 
+        id: auther.id,
+        used: false  // Condition supplémentaire pour sécurité
+      },
+      { 
+        used: true 
+      }
+    );
+
+    // Vérifier si l'update a réussi
+    if (updateResult.affected === 0) {
+      throw new BadRequestException('Échec de la mise à jour du statut');
+    }
 
     return {
       message: 'Vérification réussie',
       email,
     };
   }
-}
 
+  // OPTIONNEL: Méthode utilitaire
+  async isAlreadyVerified(email: string): Promise<boolean> {
+    const verified = await this.repo.findOne({
+      where: { 
+        identifiant: email,
+        used: true,
+      },
+    });
+    return !!verified;
+  }
+}
