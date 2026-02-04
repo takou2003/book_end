@@ -4,10 +4,10 @@ import { ClassesService } from './classes.service';
 @Controller('classes')
 export class ClassesController {
   constructor(private readonly classesService: ClassesService) {}
-  @Get(':id')
-  async loadroom(@Param('id') id: number){ 
+  @Get()
+  async loadroom(){ 
     try {
-      const requests = await this.classesService.findAll(id);
+      const requests = await this.classesService.findAll();
       
       return {
         success: true,

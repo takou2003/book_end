@@ -11,9 +11,8 @@ export class ClassesService {
 
   ) {}
   
-  findAll(id: number): Promise<Classe[]> {
+  findAll(): Promise<Classe[]> {
     return this.classesRepository.find({
-      where: {enseignementId: id},
       order: { id: 'ASC' }
     });
   }	

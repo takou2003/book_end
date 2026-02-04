@@ -44,79 +44,29 @@ export class UsersService {
       order: { id: 'ASC' }
     });
   }
-
- async signIn(loginData: LoginDto) {
-  const { phone, mail, password } = loginData;
-
-  if (!password || (!phone && !mail)) {
-    throw new BadRequestException('Identifiants invalides');
+  
+  findByEmail(mail: string) {
+    return this.usersRepository.findOne({ where: { mail } });
   }
 
-  const user = await this.usersRepository.findOne({
-    where: phone ? { phone } : { mail },
-  });
-
-  if (!user) {
-    throw new NotFoundException('Utilisateur non trouvé');
+  findById(id: number) {
+    return this.usersRepository.findOne({ where: { id } });
   }
 
-  const isPasswordValid = await bcrypt.compare(password, user.password);
-
-  if (!isPasswordValid) {
-    throw new BadRequestException('Mot de passe incorrect');
-  }
-
-  // =====================
-  // CAS PARENT
-  // =====================
-  if (user.fonction === 'parent') {
-    return {
-      success: true,
-      role: 'parent',
-      user: this.cleanUser(user),
-    };
-  }
-
-  // =====================
-  // CAS TUTOR
-  // =====================
-  if (user.fonction === 'tutor') {
-    const tutor = await this.tutorRepository.findOne({
-      where: { userId: user.id },
+  async updateRefreshToken(userId: number, token: string) {
+    const hash = await bcrypt.hash(token, 10);
+    await this.usersRepository.update(userId, {
+      refreshToken: hash,
     });
-
-    return {
-      success: true,
-      role: 'tutor',
-      user: this.cleanUser(user),
-      tutor,
-    };
   }
 
-  return {
-    success: true,
-    user: this.cleanUser(user),
-  };
-}
- private cleanUser(user: User) {
-  const {
-    password,
-    ...safeUser
-  } = user;
-
-  return {
-    id: safeUser.id,
-    username: safeUser.username,
-    phone: safeUser.phone,
-    mail: safeUser.mail,
-    ville: safeUser.ville,
-    quartier: safeUser.quartier,
-    role: safeUser.role,
-    fonction: safeUser.fonction,
-    pathImage: safeUser.pathImage,
-  };
+  async removeRefreshToken(userId: number) {
+  await this.usersRepository.update(userId, {
+    refreshToken: undefined,
+  });
 }
 
+ 
   // voir les differentes requetes
   async viewRequest(id: number): Promise<any[]> {
   const query = this.reqclassRepository
@@ -181,6 +131,13 @@ export class UsersService {
     
   return query.getRawMany();
  }
+ 
+ async findByPhoneOrMail(phone?: string, mail?: string): Promise<User | null> {
+  return this.usersRepository.findOne({
+    where: phone ? { phone } : { mail },
+  });
+}
+
   // Créer un utilisateur
   async create(userData: Partial<User>): Promise<User> {
   if (!userData.password) {
@@ -495,4 +452,22 @@ async createTutor(dto: CreateTutorDto) {
       }
     }
   }
+  private cleanUser(user: User) {
+  const {
+    password,
+    ...safeUser
+  } = user;
+
+  return {
+    id: safeUser.id,
+    username: safeUser.username,
+    phone: safeUser.phone,
+    mail: safeUser.mail,
+    ville: safeUser.ville,
+    quartier: safeUser.quartier,
+    role: safeUser.role,
+    fonction: safeUser.fonction,
+    pathImage: safeUser.pathImage,
+  };
+}
 }

@@ -13,6 +13,7 @@ import { Tutor } from '../../tutors/entities/tutor.entity';
 import { Reqclass } from '../../reqclass/entities/reqclass.entity';
 import { Notation } from '../../notations/entities/notations.entity';
 import { Commentaire } from '../../commentaires/entities/commentaires.entity'; // Chemin corrigé
+import { RefreshToken } from '../../auth/entities/refresh-token.entity'; // Chemin corrigé
 
 @Entity('users')
 export class User {
@@ -83,7 +84,6 @@ export class User {
     nullable: false 
   })
   isActive: boolean;
-  
   @Column({ 
     name: 'phone', 
     length: 15, // Même longueur
@@ -113,12 +113,22 @@ export class User {
   })
   mail: string;
   
+  @Column({ 
+    name: 'refresh_token', 
+    length: 250, // Même longueur
+    nullable: true 
+  })
+  refreshToken: string;
+  
   @OneToOne(() => Tutor, (tutor) => tutor.user)
   tutor: Tutor; // Relation simple sans configuration de jointure;
   
   @OneToMany(() => Reqclass, (reqclass) => reqclass.classe)
   reqclasse: Reqclass[]; // Nom de propriété au singulier
   
+  @OneToMany(() => RefreshToken, (rt) => rt.user)
+  refreshTokens: RefreshToken[];
+
   @OneToMany(() => Commentaire, (commentaire) => commentaire.user)
   commentaires: Commentaire[]; // Notez le nom: assclasse (au singulier)
   

@@ -19,6 +19,7 @@ import { NotationsModule } from './notations/notations.module';
 import { CommentairesModule } from './commentaires/commentaires.module';
 import { VerificationsModule } from './verifications/verifications.module';
 import { AuthersModule } from './authers/authers.module';
+import { AuthModule } from './auth/auth.module';
 
 
 @Module({
@@ -83,6 +84,8 @@ import { AuthersModule } from './authers/authers.module';
  }),
 
     AuthersModule,
+
+    AuthModule,
   ],
   controllers: [AppController],
   providers: [AppService],

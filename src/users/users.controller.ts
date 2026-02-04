@@ -2,7 +2,8 @@
 import { Controller, Get, Post, Body, Param, Query, HttpCode, HttpStatus, UploadedFile,
   UseInterceptors,
   ParseIntPipe,
-  BadRequestException} from '@nestjs/common';
+  BadRequestException, UseGuards, Req} from '@nestjs/common';
+  import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import * as path from 'path';
@@ -16,19 +17,12 @@ import { Commentaire } from '../commentaires/entities/commentaires.entity'; // C
 import { BaseUserDto } from './dto/base-user.dto';
 import { CreateParentDto } from './dto/create-parent.dto';
 import { CreateTutorDto } from './dto/create-tutor.dto';
-import { LoginDto } from './dto/login.dto';
+//import { LoginDto } from './dto/login.dto';
 
 
 @Controller('users')
 export class UsersController {
-  constructor(private readonly usersService: UsersService) {}
-
-@Post('SignIn')
-@HttpCode(HttpStatus.OK)
-async signIn(@Body() loginDto: LoginDto) {
-  return this.usersService.signIn(loginDto);
-}
-  
+  constructor(private readonly usersService: UsersService) {}  
   @Get('RequestList/:id')
   async requestUser(@Param('id') id: number){ 
     try {
@@ -208,5 +202,10 @@ async createTutor(@Body() dto: CreateTutorDto) {
       message: message,
       error: process.env.NODE_ENV === 'development' ? error.message : undefined
     };
+  }
+ @UseGuards(JwtAuthGuard)
+  @Get('me')
+  getProfile(@Req() req) {
+    return req.user;
   }
 }
