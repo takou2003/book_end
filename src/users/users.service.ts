@@ -470,4 +470,11 @@ async createTutor(dto: CreateTutorDto) {
     pathImage: safeUser.pathImage,
   };
 }
+
+async findMeWithRelations(id: number): Promise<User | null> {
+  return this.usersRepository.findOne({
+    where: { id },
+    relations: ['tutor'],
+  });
+}
 }

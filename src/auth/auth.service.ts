@@ -73,5 +73,41 @@ export class AuthService {
     await this.usersService.removeRefreshToken(userId);
     return { message: 'Logged out' };
   }
+  
+  // src/auth/auth.service.ts
+async getMe(userFromToken: { id: number; fonction: string }) {
+  const user = await this.usersService.findMeWithRelations(userFromToken.id);
+
+  if (!user) {
+    throw new UnauthorizedException();
+  }
+
+  const response: any = {
+    id: user.id,
+    username: user.username,
+    mail: user.mail,
+    phone: user.phone,
+    fonction: user.fonction,
+    role: user.role,
+    pathImage: user.pathImage,
+  };
+
+  // 🎓 TUTOR
+  if (user.fonction === 'tutor') {
+    response.tutor = {
+      id: user.tutor?.id,
+      mark: user.tutor?.mark,
+      isActive: user.tutor?.isActive,
+    };
+  }
+
+  // 👑 ADMIN
+  if (user.fonction === 'admin') {
+    response.permissions = ['ALL'];
+  }
+
+  return response;
+}
+
 }
 

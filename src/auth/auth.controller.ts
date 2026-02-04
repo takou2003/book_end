@@ -6,6 +6,7 @@ import {
   Body,
   UseGuards,
   Req,
+  Get,
 
 } from '@nestjs/common';
 
@@ -37,5 +38,10 @@ export class AuthController {
     return this.authService.logout(req.user.userId);
   }
   
+  @UseGuards(JwtAuthGuard)
+  @Get('me')
+  async me(@Req() req) {
+   return this.authService.getMe(req.user);
+  }
 }
 
