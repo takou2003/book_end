@@ -22,11 +22,12 @@ import { CreateTutorDto } from './dto/create-tutor.dto';
 
 @Controller('users')
 export class UsersController {
-  constructor(private readonly usersService: UsersService) {}  
-  @Get('RequestList/:id')
-  async requestUser(@Param('id') id: number){ 
+  constructor(private readonly usersService: UsersService) {}
+  @UseGuards(JwtAuthGuard)  
+  @Get('RequestList')
+  async requestUser(@Req() req){ 
     try {
-      const requests = await this.usersService.viewRequest(id);
+      const requests = await this.usersService.viewRequest(req.user.id);
       
       return {
         success: true,
@@ -42,10 +43,12 @@ export class UsersController {
       };
     }
   }
-  @Get('ActiveTeacherList/:id')
-  async Myteachers(@Param('id') id: number){ 
+  
+  @UseGuards(JwtAuthGuard)
+  @Get('ActiveTeacherList')
+  async Myteachers(@Req() req){ 
     try {
-      const requests = await this.usersService.TutorsUser(id);
+      const requests = await this.usersService.TutorsUser(req.user.id);
       
       return {
         success: true,
@@ -137,40 +140,47 @@ async createTutor(@Body() dto: CreateTutorDto) {
 	  }
 	}
 		
-
-  @Post(':id/upload-profile')
-  @UseInterceptors(
-    FileInterceptor('image', {
-      storage: diskStorage({
-        destination: './temp',
-        filename: (req, file, callback) => {
-          const uniqueName = `${uuidv4()}${path.extname(file.originalname)}`;
-          callback(null, uniqueName);
-        },
-      }),
-      fileFilter: (req, file, callback) => {
-        const allowedMimes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
-        if (allowedMimes.includes(file.mimetype)) {
-          callback(null, true);
-        } else {
-          callback(new BadRequestException('Type de fichier non autorisé'), false);
-        }
-      },
-      limits: {
-        fileSize: 5 * 1024 * 1024, // 5MB
+@UseGuards(JwtAuthGuard)
+@Post('upload-profile')
+@UseInterceptors(
+  FileInterceptor('image', {
+    storage: diskStorage({
+      destination: './temp',
+      filename: (req, file, callback) => {
+        const uniqueName = `${uuidv4()}${path.extname(file.originalname)}`;
+        callback(null, uniqueName);
       },
     }),
-  )
-  async uploadProfileImage(
-    @Param('id', ParseIntPipe) id: number,
-    @UploadedFile() file: Express.Multer.File,
-  ) {
-    if (!file) {
-      throw new BadRequestException('Aucun fichier uploadé');
-    }
-
-    return this.usersService.updateProfileImage(id, file);
+    fileFilter: (req, file, callback) => {
+      const allowedMimes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+      if (allowedMimes.includes(file.mimetype)) {
+        callback(null, true);
+      } else {
+        callback(
+          new BadRequestException('Type de fichier non autorisé'),
+          false,
+        );
+      }
+    },
+    limits: {
+      fileSize: 5 * 1024 * 1024, // 5MB
+    },
+  }),
+)
+async uploadProfileImage(
+  @Req() req,
+  @UploadedFile() file: Express.Multer.File,
+) {
+  if (!file) {
+    throw new BadRequestException('Aucun fichier uploadé');
   }
+
+  // 🔐 ID récupéré depuis le JWT
+  const userId = req.user.id;
+
+  return this.usersService.updateProfileImage(userId, file);
+}
+
   // Ajoutez ces méthodes manquantes
   private formatTutorResponse(result: { user: User; tutor: any; success: boolean }) {
     return {

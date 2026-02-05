@@ -81,7 +81,7 @@ async getMe(userFromToken: { id: number; fonction: string }) {
   if (!user) {
     throw new UnauthorizedException();
   }
-
+  const image = user.pathImage;
   const response: any = {
     id: user.id,
     username: user.username,
@@ -90,6 +90,7 @@ async getMe(userFromToken: { id: number; fonction: string }) {
     fonction: user.fonction,
     role: user.role,
     pathImage: user.pathImage,
+    imageUrl: `http://localhost:3000/profils/${image}`,
   };
 
   // 🎓 TUTOR
