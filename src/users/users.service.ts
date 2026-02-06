@@ -69,27 +69,31 @@ export class UsersService {
 }
 
 async search_Tutor(ville: string, classeId: number): Promise<any[]> {
-  return this.tutorRepository
+  const tutors = await this.tutorRepository
     .createQueryBuilder('t')
     .innerJoin('t.user', 'u')
     .innerJoin('t.assclasse', 'ac')
     .innerJoin('ac.classe', 'c')
     .select([
       'u.id AS user_id',
-      'u.username',
-      'u.ville',
-      'u.quartier',
-      'u.latitude',
-      'u.longitude',
-      'u.phone',
-      't.mark',
-      't.isActive',
+      'u.pathImage AS image',
+      'u.username AS username',
+      'u.ville AS ville ',
+      'u.quartier AS quartier',
+      'u.phone AS phone',
+      't.mark AS mark',
+      't.isActive AS isActive',
       'c.name AS class_name',
+      't.id AS teacher_id'
     ])
     .where('u.ville = :ville', { ville })
     .andWhere('c.id = :classeId', { classeId })
     .andWhere('t.isActive = true')
     .getRawMany();
+    return tutors.map(tutor => ({
+    ...tutor,
+    imageUrl: `http://localhost:3000/profils/${tutor.image}`,
+  }));
 }
 
   // voir les differentes requetes
