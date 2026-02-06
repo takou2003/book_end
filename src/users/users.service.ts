@@ -1,5 +1,5 @@
 // src/users/users.service.ts
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException, ConflictException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import sharp from 'sharp';
@@ -138,12 +138,45 @@ export class UsersService {
   });
 }
 
-  // Créer un utilisateur
-  async create(userData: Partial<User>): Promise<User> {
+async create(userData: Partial<User>): Promise<User> {
   if (!userData.password) {
     throw new BadRequestException('Mot de passe requis');
   }
 
+  // 🔎 Vérification email
+  if (userData.mail) {
+    const emailExists = await this.usersRepository.findOne({
+      where: { mail: userData.mail },
+    });
+
+    if (emailExists) {
+      throw new ConflictException('Cet email est déjà utilisé');
+    }
+  }
+
+  // 🔎 Vérification username
+  if (userData.username) {
+    const usernameExists = await this.usersRepository.findOne({
+      where: { username: userData.username },
+    });
+
+    if (usernameExists) {
+      throw new ConflictException('Ce nom d’utilisateur est déjà utilisé');
+    }
+  }
+
+  // 🔎 Vérification phone
+  if (userData.phone) {
+    const phoneExists = await this.usersRepository.findOne({
+      where: { phone: userData.phone },
+    });
+
+    if (phoneExists) {
+      throw new ConflictException('Ce numéro de téléphone est déjà utilisé');
+    }
+  }
+
+  // 🔐 Hash mot de passe
   const salt = await bcrypt.genSalt(10);
   const hashedPassword = await bcrypt.hash(userData.password, salt);
 
@@ -154,6 +187,7 @@ export class UsersService {
 
   return this.usersRepository.save(user);
 }
+
 
   create_request(reqclassData: Partial<Reqclass>): Promise<Reqclass> {
     const reqClass = this.reqclassRepository.create(reqclassData);
