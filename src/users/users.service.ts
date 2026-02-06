@@ -15,7 +15,9 @@ import { Classe } from '../classes/entities/classe.entity';
 import { LoginDto } from './dto/login.dto';
 import { BaseUserDto } from './dto/base-user.dto';
 import { CreateParentDto } from './dto/create-parent.dto';
+import { SearchTutorDto } from './dto/search-tutor.dto';
 import { CreateTutorDto } from './dto/create-tutor.dto';
+
 
 @Injectable()
 export class UsersService {
@@ -66,7 +68,30 @@ export class UsersService {
   });
 }
 
- 
+async search_Tutor(ville: string, classeId: number): Promise<any[]> {
+  return this.tutorRepository
+    .createQueryBuilder('t')
+    .innerJoin('t.user', 'u')
+    .innerJoin('t.assclasse', 'ac')
+    .innerJoin('ac.classe', 'c')
+    .select([
+      'u.id AS user_id',
+      'u.username',
+      'u.ville',
+      'u.quartier',
+      'u.latitude',
+      'u.longitude',
+      'u.phone',
+      't.mark',
+      't.isActive',
+      'c.name AS class_name',
+    ])
+    .where('u.ville = :ville', { ville })
+    .andWhere('c.id = :classeId', { classeId })
+    .andWhere('t.isActive = true')
+    .getRawMany();
+}
+
   // voir les differentes requetes
   async viewRequest(id: number): Promise<any[]> {
   const query = this.reqclassRepository

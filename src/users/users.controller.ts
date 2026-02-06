@@ -17,6 +17,7 @@ import { Commentaire } from '../commentaires/entities/commentaires.entity'; // C
 import { BaseUserDto } from './dto/base-user.dto';
 import { CreateParentDto } from './dto/create-parent.dto';
 import { CreateTutorDto } from './dto/create-tutor.dto';
+import { SearchTutorDto } from './dto/search-tutor.dto';
 //import { LoginDto } from './dto/login.dto';
 
 
@@ -43,7 +44,32 @@ export class UsersController {
       };
     }
   }
-  
+@Post('search')
+async findTutors(@Body() dto: SearchTutorDto) {
+  try {
+    const tutors = await this.usersService.search_Tutor(
+      dto.ville,
+      dto.classeId,
+    );
+
+    return {
+      success: true,
+      count: tutors.length,
+      total_found: tutors.length,
+      data: tutors,
+    };
+  } catch (error) {
+    return {
+      success: false,
+      message: 'Erreur lors de la recherche des tuteurs',
+      error:
+        process.env.NODE_ENV === 'development'
+          ? error.message
+          : undefined,
+    };
+  }
+}
+
   @UseGuards(JwtAuthGuard)
   @Get('ActiveTeacherList')
   async Myteachers(@Req() req){ 
