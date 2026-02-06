@@ -41,14 +41,14 @@ export class Reqclass {
   @Column({ 
     name: 'status', 
     length: 15, // Même longueur
-    nullable: false 
+    nullable: true 
   })
   status: string;
   
   @Column({ 
     name: 'notation', 
     type: 'float', // double precision dans PostgreSQL = float
-    nullable: false 
+    nullable: true 
   })
   notation: number;
   

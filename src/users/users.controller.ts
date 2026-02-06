@@ -130,19 +130,19 @@ async createTutor(@Body() dto: CreateTutorDto) {
 	    console.log('Données reçues:', requestData); // Pour déboguer
 	    
 	    // Vérifiez que les données sont présentes
-	    if (!requestData.user_id || !requestData.teacher_id || !requestData.classe_id) {
+	    if (!requestData.userId || !requestData.teacherId || !requestData.classeId) {
 	      return {
 		success: false,
 		message: 'Données manquantes',
-		error: 'user_id, teacher_id et classe_id sont requis'
+		error: 'userId, teacherId et classeId sont requis'
 	      };
 	    }
 
 	    // Créez l'objet dans le format attendu par Reqclass
 	    const reqclassData: Partial<Reqclass> = {
-	      userId: Number(requestData.user_id), // Assurez-vous que c'est le bon nom
-	      teacherId: Number(requestData.teacher_id), // Assurez-vous que c'est le bon nom
-	      classeId: Number(requestData.classe_id), // Assurez-vous que c'est le bon nom
+	      userId: Number(requestData.userId), // Assurez-vous que c'est le bon nom
+	      teacherId: Number(requestData.teacherId), // Assurez-vous que c'est le bon nom
+	      classeId: Number(requestData.classeId), // Assurez-vous que c'est le bon nom
 	      isActive: true
 	    };
 	    
