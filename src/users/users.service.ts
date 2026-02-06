@@ -219,9 +219,15 @@ async create(userData: Partial<User>): Promise<User> {
 
 
   create_request(reqclassData: Partial<Reqclass>): Promise<Reqclass> {
-    const reqClass = this.reqclassRepository.create(reqclassData);
-    return this.reqclassRepository.save(reqClass);
-  }  
+  const reqClass = this.reqclassRepository.create({
+    ...reqclassData,
+    status: reqclassData.status ?? 'pending',
+    notation: reqclassData.notation ?? 0,
+  });
+
+  return this.reqclassRepository.save(reqClass);
+}
+ 
 async createParent(dto: CreateParentDto) {
   const user = await this.create({
     ...dto,
