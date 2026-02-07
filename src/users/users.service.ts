@@ -82,6 +82,7 @@ async ville_tutor(ville: string): Promise<any[]> {
        'u.username AS name',
        'u.ville AS ville',
        'u.quartier AS quartier',
+       'u.pathImage AS image',
        'c.name AS classe',
        't.id AS teacher_id',
        't.mark AS mark',
