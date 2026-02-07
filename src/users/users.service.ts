@@ -10,7 +10,8 @@ import * as path from 'path';
 import * as bcrypt from 'bcrypt';
 import { User } from './entities/user.entity';
 import { Tutor } from '../tutors/entities/tutor.entity';
-import { Reqclass } from '../reqclass/entities/reqclass.entity'; 
+import { Reqclass } from '../reqclass/entities/reqclass.entity';
+import { Commentaire } from '../commentaires/entities/commentaires.entity'; // Chemin corrigé 
 import { Classe } from '../classes/entities/classe.entity'; 
 import { LoginDto } from './dto/login.dto';
 import { BaseUserDto } from './dto/base-user.dto';
@@ -38,6 +39,9 @@ export class UsersService {
     
     @InjectRepository(Classe)
     private classeRepository: Repository<Classe>,
+       
+    @InjectRepository(Commentaire) 
+    private commentaireRepository: Repository<Commentaire>,
   ) {}
 
   // Trouver tous les utilisateurs
@@ -66,6 +70,31 @@ export class UsersService {
   await this.usersRepository.update(userId, {
     refreshToken: undefined,
   });
+}
+
+async ville_tutor(ville: string): Promise<any[]> {
+    const tutors = await this.tutorRepository
+     .createQueryBuilder('t')
+     .innerJoin('t.user', 'u')
+     .innerJoin('t.assclasse', 'ac')
+     .innerJoin('ac.classe', 'c')
+     .select([
+       'u.username AS name',
+       'u.ville AS ville',
+       'u.quartier AS quartier',
+       'c.name AS classe',
+       't.id AS teacher_id',
+       't.mark AS mark',
+       'c.name AS name_class'
+     ])
+     .where('u.ville = :ville', { ville }) // Ajout d'un filtre par ville si nécessaire
+     .andWhere('t.isActive = true')
+     .limit(5)
+     .getRawMany();
+     return tutors.map(tutor => ({
+    ...tutor,
+    imageUrl: `http://localhost:3000/profils/${tutor.image}`,
+    }));
 }
 
 async search_Tutor(ville: string, classeId: number): Promise<any[]> {
@@ -137,6 +166,11 @@ async search_Tutor(ville: string, classeId: number): Promise<any[]> {
     
   return query.getRawMany();
  }
+ 
+ create_comment(commentData: Partial<Commentaire>): Promise<Commentaire> {
+    const comment = this.commentaireRepository.create(commentData);
+    return this.commentaireRepository.save(comment);
+  }
  
  async RelationWithTutor(id: number): Promise<any[]> {
  const status = 'accepted';

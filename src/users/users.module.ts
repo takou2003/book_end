@@ -7,10 +7,11 @@ import { User } from './entities/user.entity';
 import { Tutor } from '../tutors/entities/tutor.entity';
 import { Reqclass } from '../reqclass/entities/reqclass.entity';
 import { Classe } from '../classes/entities/classe.entity';
+import { Commentaire } from '../commentaires/entities/commentaires.entity';
 import { MulterModule } from '@nestjs/platform-express';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([User, Tutor, Classe, Reqclass]), 
+  imports: [TypeOrmModule.forFeature([User, Tutor, Classe, Reqclass, Commentaire]), 
   MulterModule.register({
       dest: './temp',
     }),

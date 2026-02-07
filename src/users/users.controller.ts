@@ -70,6 +70,70 @@ async findTutors(@Body() dto: SearchTutorDto) {
   }
 }
 
+@UseGuards(JwtAuthGuard)
+@Post('comment')
+async createComment(
+  @Req() req,
+  @Body() body: any,
+) {
+  try {
+    const userId = req.user.id; // 🔐 depuis JWT
+    const { teacher_id, texte } = body;
+
+    if (!teacher_id || !texte) {
+      return {
+        success: false,
+        message: 'Données manquantes',
+        error: 'teacher_id et texte sont requis',
+      };
+    }
+
+    const commentData: Partial<Commentaire> = {
+      teacherId: Number(teacher_id),
+      userId: Number(userId),
+      texte,
+    };
+
+    const comment = await this.usersService.create_comment(commentData);
+
+    return {
+      success: true,
+      data: comment,
+      message: 'Commentaire créé avec succès',
+    };
+  } catch (error) {
+    return {
+      success: false,
+      message: 'Erreur lors de la création du commentaire',
+      error:
+        process.env.NODE_ENV === 'development'
+          ? error.message
+          : undefined,
+    };
+  }
+}
+
+ @UseGuards(JwtAuthGuard)
+ @Get('loadTutor')
+  async available(@Req() req) {
+    try {
+      const tutors = await this.usersService.ville_tutor(req.user.ville);
+      
+      return {
+        success: true,
+        count: tutors.length, // Correction: 'tutors.length' pas 'filteredTutors'
+        total_found: tutors.length,
+        data: tutors // Correction: virgule au lieu de point-virgule
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: 'Erreur lors de la recherche des tuteurs',
+        error: process.env.NODE_ENV === 'development' ? error.message : undefined
+      };
+    }
+}
+
   @UseGuards(JwtAuthGuard)
   @Get('ActiveTeacherList')
   async Myteachers(@Req() req){ 

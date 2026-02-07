@@ -33,6 +33,7 @@ export class AuthService {
       sub: user.id,
       mail: user.mail,
       role: user.fonction,
+      ville: user.ville,
     };
 
     const accessToken = this.jwtService.sign(payload, {
@@ -88,6 +89,8 @@ async getMe(userFromToken: { id: number; fonction: string }) {
     mail: user.mail,
     phone: user.phone,
     fonction: user.fonction,
+    ville: user.ville,
+    quartier: user.quartier,
     role: user.role,
     pathImage: user.pathImage,
     imageUrl: `http://localhost:3000/profils/${image}`,
