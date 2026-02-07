@@ -101,18 +101,23 @@ export class TutorsService {
  }
 
  async commentList(id: number): Promise<any[]> {
-  const query = this.commentaireRepository
+  const comments = await this.commentaireRepository
     .createQueryBuilder('cm')
     .innerJoin('cm.user', 'u') // INNER JOIN users pour l'utilisateur simple
     .innerJoin('cm.tutor', 't') // INNER JOIN teachers
     .innerJoin('t.user', 'ut') // INNER JOIN users pour l'enseignant (via teachers)
     .select([
       'u.username AS parent',
+      'u.pathImage AS image',
       'cm.texte AS commentaire',
       'cm.createdAt AS date'
     ])
-    .where('t.id = :id', { id });
-  return query.getRawMany();
+    .where('t.id = :id', { id })
+    .getRawMany();
+    return comments.map(comment => ({
+    ...comment,
+    imageUrl: `http://103.45.247.26:3000/profils/${comment.image}`,
+    }));
  }
  create_comment(commentData: Partial<Commentaire>): Promise<Commentaire> {
     const comment = this.commentaireRepository.create(commentData);
