@@ -4,7 +4,9 @@ import {
   PrimaryGeneratedColumn, 
   Column, 
   ManyToOne, // AJOUTEZ CE IMPORT
-  JoinColumn 
+  JoinColumn ,
+  CreateDateColumn,
+  UpdateDateColumn
 } from 'typeorm';
 import { Tutor } from '../../tutors/entities/tutor.entity';
 import { User } from '../../users/entities/user.entity';
@@ -25,6 +27,12 @@ export class Notation {
   
   @Column({ name: 'commentaire', length: 250, nullable:true})
   commentaire?: string;
+  
+  @CreateDateColumn({ name: 'created_at' })
+  createdAt: Date;
+
+  @UpdateDateColumn({ name: 'updated_at' })
+  updatedAt: Date;
 
   @ManyToOne(() => Tutor, (tutor) => tutor.notatione)
   @JoinColumn({ name: 'teacher_id' })

@@ -1,5 +1,5 @@
 // src/tutors/tutors.service.ts
-import { Injectable } from '@nestjs/common';
+import { Injectable , BadRequestException} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm'; // AJOUTEZ
 import { Repository } from 'typeorm'; // AJOUTEZ
 import { Tutor } from './entities/tutor.entity';
@@ -9,6 +9,7 @@ import { Verification } from '../verifications/entities/verification.entity'; //
 import { Classe } from '../classes/entities/classe.entity'; // Chemin corrigé
 import { Reqclass } from '../reqclass/entities/reqclass.entity'; // Chemin corrigé
 import { Commentaire } from '../commentaires/entities/commentaires.entity'; // Chemin corrigé
+import { Notation } from '../notations/entities/notations.entity'; // Chemin corrigé
 
 @Injectable()
 export class TutorsService {
@@ -31,6 +32,8 @@ export class TutorsService {
     @InjectRepository(Commentaire) 
     private commentaireRepository: Repository<Commentaire>,
     
+    @InjectRepository(Notation) 
+    private notationRepository: Repository<Notation>,
   ) {}
   
   // Méthode avec les JOINs corrects
@@ -59,6 +62,19 @@ export class TutorsService {
     return query.getRawMany();
   }
   
+    // Méthode avec les JOINs corrects
+  async classe_Tutor(teacherId: number): Promise<any[]> {
+    const query = this.tutorRepository
+      .createQueryBuilder('t')
+      .innerJoin('t.assclasse', 'ac') // Correction: 'assclasse' pas 'asslasse'
+      .innerJoin('ac.classe', 'c') // INNER JOIN classes
+      .select([
+        'c.name AS class_name',
+        'c.id AS class_id'      
+      ])
+      .andWhere('t.id = :teacherId', { teacherId })
+    return query.getRawMany();
+  }
   async ville_tutor(ville: string): Promise<any[]> {
     const query = this.tutorRepository
      .createQueryBuilder('t')
@@ -99,7 +115,7 @@ export class TutorsService {
 
   return query.getRawMany();
  }
-/*
+
  async commentList(id: number): Promise<any[]> {
   const comments = await this.notationRepository
     .createQueryBuilder('nt')
@@ -110,7 +126,8 @@ export class TutorsService {
       'u.username AS parent',
       'u.pathImage AS image',
       'nt.commentaire AS commentaire',
-      'cm.createdAt AS date'
+      'nt.updatedAt AS date',
+      'nt.mark AS mark'
     ])
     .where('t.id = :id', { id })
     .getRawMany();
@@ -118,7 +135,7 @@ export class TutorsService {
     ...comment,
     imageUrl: `http://103.45.247.26:3000/profils/${comment.image}`,
     }));
- }*/
+ }
  create_comment(commentData: Partial<Commentaire>): Promise<Commentaire> {
     const comment = this.commentaireRepository.create(commentData);
     return this.commentaireRepository.save(comment);
@@ -128,35 +145,26 @@ export class TutorsService {
     const assclass = this.assClassRepository.create(assData);
     return this.assClassRepository.save(assclass);
   }
-  
- async Acceptrequest(id: number): Promise<{ success: boolean; message: string; data?: any }> {
-  try {
-    const result = await this.reqclassRepository.update(
-      { id: id },
-      { 
-        status: 'accepted',
-        updatedAt: new Date()
-      }
-    );
-    if (result.affected === 0) {
-      return {
-        success: false,
-        message: 'Requête non trouvée'
-      };
-    }
-    const updatedRequest = await this.reqclassRepository.findOne({ where: { id } });
-    return {
-      success: true,
-      message: 'Requête acceptée',
-      data: updatedRequest
-    };
-  } catch (error) {
-    return {
-      success: false,
-      message: 'Erreur lors de l\'acceptation'
-    };
+
+
+async getTutorIdFromUser(userId: number): Promise<number> {
+  const user = await this.usersRepository.findOne({
+    where: { id: userId },
+    relations: ['tutor'],
+  });
+
+  if (!user) {
+    throw new BadRequestException('Utilisateur introuvable');
   }
+
+  if (!user.tutor) {
+    throw new BadRequestException('Utilisateur non tuteur');
+  }
+
+  return user.tutor.id;
 }
+
+
 async AcceptTeacher(id: number): Promise<{ success: boolean; message: string; data?: any }> {
   try {
     const result = await this.tutorRepository.update(
@@ -184,34 +192,7 @@ async AcceptTeacher(id: number): Promise<{ success: boolean; message: string; da
     };
   }
 }
-async Deniedrequest(id: number): Promise<{ success: boolean; message: string; data?: any }> {
-  try {
-    const result = await this.reqclassRepository.update(
-      { id: id },
-      { 
-        status: 'denied',
-        updatedAt: new Date()
-      }
-    );
-    if (result.affected === 0) {
-      return {
-        success: false,
-        message: 'Requête non trouvée'
-      };
-    }
-    const updatedRequest = await this.reqclassRepository.findOne({ where: { id } });
-    return {
-      success: true,
-      message: 'Requête acceptée',
-      data: updatedRequest
-    };
-  } catch (error) {
-    return {
-      success: false,
-      message: 'Erreur lors de l\'acceptation'
-    };
-  }
-}
+
   async TutorDetail(id: number): Promise<any[] | null>{
     const infos = await this.tutorRepository
     .createQueryBuilder('t')
@@ -232,6 +213,46 @@ async Deniedrequest(id: number): Promise<{ success: boolean; message: string; da
     }));
  }
  
+ async updateRequestStatus(
+  id: number,
+  status: 'accepted' | 'denied',
+): Promise<{ success: boolean; message: string; data?: any }> {
+  try {
+    const result = await this.reqclassRepository.update(
+      { id },
+      {
+        status,
+        updatedAt: new Date(),
+      },
+    );
+
+    if (result.affected === 0) {
+      return {
+        success: false,
+        message: 'Requête non trouvée',
+      };
+    }
+
+    const updatedRequest = await this.reqclassRepository.findOne({
+      where: { id },
+    });
+
+    return {
+      success: true,
+      message:
+        status === 'accepted'
+          ? 'Requête acceptée'
+          : 'Requête refusée',
+      data: updatedRequest,
+    };
+  } catch (error) {
+    return {
+      success: false,
+      message: 'Erreur lors de la mise à jour de la requête',
+    };
+  }
+}
+
  async RequestDetail(id: number): Promise<any[] | null>{
     const Request = this.reqclassRepository
     .createQueryBuilder('rc')

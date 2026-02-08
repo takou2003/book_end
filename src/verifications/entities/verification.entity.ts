@@ -31,6 +31,15 @@ export class Verification { // Assclass (sans 'e' à la fin)
   @UpdateDateColumn({ name: 'updated_at' })
   updatedAt: Date;
   
+  @Column({ 
+    name: 'status', 
+    length: 20, // Même longueur
+    nullable: false ,
+    default:'pending'
+  })
+  status: 'pending' | 'accepted' | 'denied';;
+  
+  
   @ManyToOne(() => Tutor, (tutor) => tutor.verificationed)
   @JoinColumn({ name: 'teacher_id' })
   tutor: Tutor;

@@ -1,14 +1,23 @@
 // src/tutors/tutors.controller.ts
-import { Controller, Get, Query, Param, BadRequestException, Post, Body } from '@nestjs/common';
+import { Controller, Get, Query, Param, BadRequestException, Post, Body, UseGuards, Req,
+UseInterceptors,
+UploadedFile,
+} from '@nestjs/common';
 import { TutorsService } from './tutors.service';
+import { VerificationsService } from '../verifications/verifications.service';
 import { Reqclass } from '../reqclass/entities/reqclass.entity'; // Chemin corrigé
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { FileInterceptor } from '@nestjs/platform-express';
 import { Commentaire } from '../commentaires/entities/commentaires.entity'; // Chemin corrigé
 import { Classe } from '../classes/entities/classe.entity'; // Chemin corrigé
 import { User } from '../users/entities/user.entity';
 import { Assclass } from '../assclass/entities/assclass.entity';
 @Controller('tutors')
 export class TutorsController {
-  constructor(private readonly tutorsService: TutorsService) {}
+  constructor(
+  	private readonly tutorsService: TutorsService,
+        private readonly verificationsService: VerificationsService,
+  ) {}
   
   @Get('search/ville/:ville/id/:id')
   async findTutorsByVilleAndClasse(
@@ -32,37 +41,57 @@ export class TutorsController {
       };
     }
   }
-  
-  @Get('RequestList/:id')
-  async requestUser(@Param('id') id: number){ 
-    try {
-      const requests = await this.tutorsService.viewRequest(id);
-      
-      return {
-        success: true,
-        count: requests.length, // 
-        total_found: requests.length,
-        data: requests // 
-      };
-    } catch (error) {
-      return {
-        success: false,
-        message: 'Erreur lors de la recherche des requetes',
-        error: process.env.NODE_ENV === 'development' ? error.message : undefined
-      };
-    }
+@UseGuards(JwtAuthGuard)
+@Post('verifications/upload')
+@UseInterceptors(FileInterceptor('document'))
+async uploadVerification(
+  @Req() req,
+  @UploadedFile() file: Express.Multer.File,
+) {
+  if (!file) {
+    throw new BadRequestException('Aucun document fourni');
   }
-  /*
-  @Get('comment/:id')
-  async commentUser(@Param('id') id: number){ 
+
+  const tutorId = await this.tutorsService.getTutorIdFromUser(req.user.id);
+
+  const verification =
+    await this.verificationsService.uploadDocument(tutorId, file);
+
+  return {
+    success: true,
+    message: 'Document envoyé pour vérification',
+    data: {
+      id: verification.id,
+      filename: verification.pathDocument,
+      createdAt: verification.createdAt,
+    },
+  };
+}
+
+@UseGuards(JwtAuthGuard)
+@Get('RequestList')
+async requestUser(@Req() req) {
+  const tutorId = await this.tutorsService.getTutorIdFromUser(req.user.id);
+  const requests = await this.tutorsService.viewRequest(tutorId);
+
+  return {
+    success: true,
+    count: requests.length,
+    total_found: requests.length,
+    data: requests,
+  };
+}
+  
+ @Get('tutorcomment/:id')
+  async available(@Param('id') id: number) {
     try {
-      const requests = await this.tutorsService.commentList(id);
+      const tutors = await this.tutorsService.commentList(id);
       
       return {
         success: true,
-        count: requests.length, // 
-        total_found: requests.length,
-        data: requests // 
+        count: tutors.length, // Correction: 'tutors.length' pas 'filteredTutors'
+        total_found: tutors.length,
+        data: tutors // Correction: virgule au lieu de point-virgule
       };
     } catch (error) {
       return {
@@ -71,139 +100,54 @@ export class TutorsController {
         error: process.env.NODE_ENV === 'development' ? error.message : undefined
       };
     }
-  }
-  */
-  @Post('comment')
-  async createcomment(@Body() requestData: any): Promise<{
-    success: boolean;
-    data?: Commentaire;
-    message: string;
-    error?: string;
-  }> {
-    try {
-      console.log('Données reçues:', requestData); // Pour déboguer
-      
-      // Vérifiez que les données sont présentes
-      if (!requestData.user_id || !requestData.teacher_id || !requestData.texte) {
-        return {
-          success: false,
-          message: 'Données manquantes',
-          error: 'user_id, teacher_id et texte sont requis'
-        };
-      }
+}
 
-      // Créez l'objet dans le format attendu par Commentaire
-      const commentData: Partial<Commentaire> = {
-        teacherId: Number(requestData.teacher_id), // Correction: teacher_id correspond à teacherId
-        userId: Number(requestData.user_id),       // Correction: user_id correspond à userId
-        texte: requestData.texte
-      };
-      
-      // Appelez la méthode
-      const comment = await this.tutorsService.create_comment(commentData);
+@Post('responseRequest/:id/:action')
+async handleRequest(
+  @Param('id') id: number,
+  @Param('action') action: 'accept' | 'deny',
+) {
+  if (!['accept', 'deny'].includes(action)) {
+    throw new BadRequestException('Action invalide');
+  }
+
+  const result = await this.tutorsService.updateRequestStatus(
+    id,
+    action === 'accept' ? 'accepted' : 'denied',
+  );
+
+  if (!result.success) {
+    throw new BadRequestException(result.message);
+  }
+
+  return {
+    message: result.message,
+    data: result.data,
+  };
+}
+
+
+@Get('tutorclass/:id')
+  async classe_tutor(@Param('id') id: number) {
+    try {
+      const tutors = await this.tutorsService.classe_Tutor(id);
       
       return {
         success: true,
-        data: comment,
-        message: 'Commentaire créé avec succès'
+        count: tutors.length, // Correction: 'tutors.length' pas 'filteredTutors'
+        total_found: tutors.length,
+        data: tutors // Correction: virgule au lieu de point-virgule
       };
-      
     } catch (error) {
-      console.error('Erreur lors de la création du commentaire:', error);
-      
       return {
         success: false,
-        message: 'Erreur interne du serveur',
+        message: 'Erreur lors de la recherche des classes',
         error: process.env.NODE_ENV === 'development' ? error.message : undefined
       };
     }
-  }
-  @Post('AddTutorInclasse')
-  async createAssclass(@Body() requestData: any): Promise<{
-    success: boolean;
-    data?: Assclass;
-    message: string;
-    error?: string;
-  }> {
-    try {
-      console.log('Données reçues:', requestData); // Pour déboguer
-      
-      // Vérifiez que les données sont présentes
-      if (!requestData.teacher_id || !requestData.classe_id ) {
-        return {
-          success: false,
-          message: 'Données manquantes',
-          error: ' teacher_id et classe_id sont requis'
-        };
-      }
-
-      // Créez l'objet dans le format attendu par Commentaire
-      const assclassData: Partial<Assclass> = {
-        teacherId: Number(requestData.teacher_id), // Correction: teacher_id correspond à teacherId
-        classeId: Number(requestData.classe_id)       // Correction: user_id correspond à userId
-      };
-      
-      // Appelez la méthode
-      const assclass = await this.tutorsService.create_assclass(assclassData);
-      
-      return {
-        success: true,
-        data: assclass,
-        message: 'association créé avec succès'
-      };
-      
-    } catch (error) {
-      console.error('Erreur lors de la création de assclass:', error);
-      
-      return {
-        success: false,
-        message: 'Erreur interne du serveur',
-        error: process.env.NODE_ENV === 'development' ? error.message : undefined
-      };
-    }
-  }
-@Post('Requestconfirm/:id')
-async confirmexchange(@Param('id') id: number) {
-  const result = await this.tutorsService.Acceptrequest(id);
-  
-  if (!result.success) {
-    throw new BadRequestException(result.message);
-  }
-  
-  return {
-    message: result.message,
-    data: result.data
-  };
 }
 
-@Post('Teacherconfirm/:id')
-async confirmteacher(@Param('id') id: number) {
-  const result = await this.tutorsService.AcceptTeacher(id);
-  
-  if (!result.success) {
-    throw new BadRequestException(result.message);
-  }
-  
-  return {
-    message: result.message,
-    data: result.data
-  };
-}
-
-@Post('RequestDenied/:id')
-async deniedxchange(@Param('id') id: number) {
-  const result = await this.tutorsService.Deniedrequest(id);
-  
-  if (!result.success) {
-    throw new BadRequestException(result.message);
-  }
-  
-  return {
-    message: result.message,
-    data: result.data
-  };
-}
-  @Get('tutorInfo/:id')
+@Get('tutorInfo/:id')
 	async tutorInfo(@Param('id') id: number) {
 	  try {
 	    const requests = await this.tutorsService.TutorDetail(id);
@@ -236,7 +180,68 @@ async deniedxchange(@Param('id') id: number) {
 	    };
 	  }
 	}
-	
+@UseGuards(JwtAuthGuard)
+@Post('AddTutorInclasse')
+async createAssclass(
+  @Req() req,
+  @Query('classe_id') classeId: number,
+): Promise<{
+  success: boolean;
+  data?: Assclass;
+  message: string;
+  error?: string;
+}> {
+  try {
+    if (!classeId) {
+      return {
+        success: false,
+        message: 'Données manquantes',
+        error: 'classe_id est requis',
+      };
+    }
+
+    // 🔐 tutorId depuis le JWT
+    const tutorId = await this.tutorsService.getTutorIdFromUser(req.user.id);
+
+    const assclassData: Partial<Assclass> = {
+      teacherId: tutorId,
+      classeId: Number(classeId),
+    };
+
+    const assclass = await this.tutorsService.create_assclass(assclassData);
+
+    return {
+      success: true,
+      data: assclass,
+      message: 'Association créée avec succès',
+    };
+  } catch (error) {
+    return {
+      success: false,
+      message: 'Erreur lors de l’association',
+      error:
+        process.env.NODE_ENV === 'development'
+          ? error.message
+          : undefined,
+    };
+  }
+}
+
+
+@Post('Teacherconfirm/:id')
+async confirmteacher(@Param('id') id: number) {
+  const result = await this.tutorsService.AcceptTeacher(id);
+  
+  if (!result.success) {
+    throw new BadRequestException(result.message);
+  }
+  
+  return {
+    message: result.message,
+    data: result.data
+  };
+}
+
    @Get('DetailRequest/:id')
    async RequestInfo(@Param('id') id: number) {
 	  try {
@@ -270,4 +275,37 @@ async deniedxchange(@Param('id') id: number) {
 	    };
 	  }
 	}
+	// src/tutors/tutors.controller.ts
+@UseGuards(JwtAuthGuard) // + AdminGuard si tu en as un
+@Post('confirm-teacher/:verificationId')
+async confirmTeacher(
+  @Param('verificationId') verificationId: number,
+  @Query('decision') decision: 'accepted' | 'denied',
+) {
+  if (!decision) {
+    throw new BadRequestException('decision est requis');
+  }
+
+  if (!['accepted', 'denied'].includes(decision)) {
+    throw new BadRequestException(
+      "decision doit être 'accepted' ou 'denied'",
+    );
+  }
+
+  const result =
+    await this.verificationsService.confirmTeacher(
+      verificationId,
+      decision,
+    );
+
+  return {
+    success: true,
+    message:
+      decision === 'accepted'
+        ? 'Tuteur validé avec succès'
+        : 'Tuteur refusé',
+    data: result,
+  };
+}
+
 }
