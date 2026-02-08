@@ -99,17 +99,17 @@ export class TutorsService {
 
   return query.getRawMany();
  }
-
+/*
  async commentList(id: number): Promise<any[]> {
-  const comments = await this.commentaireRepository
-    .createQueryBuilder('cm')
-    .innerJoin('cm.user', 'u') // INNER JOIN users pour l'utilisateur simple
-    .innerJoin('cm.tutor', 't') // INNER JOIN teachers
+  const comments = await this.notationRepository
+    .createQueryBuilder('nt')
+    .innerJoin('nt.user', 'u') // INNER JOIN users pour l'utilisateur simple
+    .innerJoin('nt.tutor', 't') // INNER JOIN teachers
     .innerJoin('t.user', 'ut') // INNER JOIN users pour l'enseignant (via teachers)
     .select([
       'u.username AS parent',
       'u.pathImage AS image',
-      'cm.texte AS commentaire',
+      'nt.commentaire AS commentaire',
       'cm.createdAt AS date'
     ])
     .where('t.id = :id', { id })
@@ -118,7 +118,7 @@ export class TutorsService {
     ...comment,
     imageUrl: `http://103.45.247.26:3000/profils/${comment.image}`,
     }));
- }
+ }*/
  create_comment(commentData: Partial<Commentaire>): Promise<Commentaire> {
     const comment = this.commentaireRepository.create(commentData);
     return this.commentaireRepository.save(comment);
@@ -128,103 +128,6 @@ export class TutorsService {
     const assclass = this.assClassRepository.create(assData);
     return this.assClassRepository.save(assclass);
   }
-  
-async notation(
-  id: number, 
-  notation1: number, 
-  teacher_id: number
-): Promise<{ success: boolean; message: string; data?: any; average?: number }> {
-  try {
-    // 1. Vérifier si la notation est valide (entre 0 et 5 ou 0 et 20 selon votre échelle)
-    if (notation1 < 0 || notation1 > 5) { // Ajustez selon votre échelle de notation
-      return {
-        success: false,
-        message: 'La notation doit être entre 0 et 5'
-      };
-    }
-
-    // 2. Mettre à jour la notation de la reqclass spécifique
-    const result = await this.reqclassRepository.update(
-      { id: id },
-      { 
-        notation: notation1,
-        updatedAt: new Date()
-      }
-    );
-
-    if (result.affected === 0) {
-      return {
-        success: false,
-        message: 'Requête non trouvée'
-      };
-    }
-
-    // 3. Calculer la moyenne des notations pour ce teacher_id
-    const averageResult = await this.calculateTeacherAverage(teacher_id);
-
-    // 4. Mettre à jour le mark du tutor (dans la table teachers)
-    await this.updateTutorMark(teacher_id, averageResult.average);
-
-    // 5. Récupérer la reqclass mise à jour
-    const updatedNote = await this.reqclassRepository.findOne({ 
-      where: { id },
-      relations: ['user', 'tutor', 'classe']
-    });
-
-    return {
-      success: true,
-      message: 'Note mise à jour et moyenne calculée',
-      data: updatedNote,
-      average: averageResult.average
-    };
-  } catch (error) {
-    console.error('Erreur lors de la notation:', error);
-    return {
-      success: false,
-      message: 'Erreur lors de la mise à jour de la notation'
-    };
-  }
-}
-
-/**
- * Calculer la moyenne des notations pour un teacher_id
- */
-private async calculateTeacherAverage(teacher_id: number): Promise<{ 
-  average: number; 
-  total: number; 
-  count: number 
-}> {
-  const query = this.reqclassRepository
-    .createQueryBuilder('reqclass')
-    .select('AVG(reqclass.notation)', 'average')
-    .addSelect('SUM(reqclass.notation)', 'total')
-    .addSelect('COUNT(reqclass.id)', 'count')
-    .where('reqclass.teacher_id = :teacher_id', { teacher_id })
-    .andWhere('reqclass.notation > 0') // Exclure les notations nulles si nécessaire
-    .andWhere('reqclass.is_active = true'); // Seulement les requêtes actives
-
-  const result = await query.getRawOne();
-
-  return {
-    average: parseFloat(result.average) || 0,
-    total: parseFloat(result.total) || 0,
-    count: parseInt(result.count) || 0
-  };
-}
-
-/**
- * Mettre à jour le mark du tutor dans la table teachers
- */
-private async updateTutorMark(teacher_id: number, average: number): Promise<void> {
-  // Supposons que vous avez accès au repository teachers
-  // Si ce n'est pas dans le même service, injectez TeachersRepository
-  await this.tutorRepository.update(
-    { id: teacher_id },
-    { 
-      mark: average, // Assurez-vous que la colonne s'appelle 'mark' dans teachers
-    }
-  );
-}
   
  async Acceptrequest(id: number): Promise<{ success: boolean; message: string; data?: any }> {
   try {

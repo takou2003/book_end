@@ -52,6 +52,7 @@ export class TutorsController {
       };
     }
   }
+  /*
   @Get('comment/:id')
   async commentUser(@Param('id') id: number){ 
     try {
@@ -71,7 +72,7 @@ export class TutorsController {
       };
     }
   }
-  
+  */
   @Post('comment')
   async createcomment(@Body() requestData: any): Promise<{
     success: boolean;

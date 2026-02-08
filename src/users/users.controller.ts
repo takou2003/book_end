@@ -113,6 +113,35 @@ async createComment(
   }
 }
 
+@UseGuards(JwtAuthGuard)
+@Post('/rating')
+async noteTutor(
+  @Req() req,
+  @Body() body: {
+    teacher_id: number;
+    mark: number;
+    commentaire?: string;
+  },
+) {
+  const userId = req.user.id;
+  const { teacher_id, mark, commentaire } = body;
+
+  if (!teacher_id || mark === undefined) {
+    return {
+      success: false,
+      message: 'teacher_id et mark sont requis',
+    };
+  }
+
+  return this.usersService.postNotation(
+    userId,
+    teacher_id,
+    mark,
+    commentaire,
+  );
+}
+
+
  @UseGuards(JwtAuthGuard)
  @Get('loadTutor')
   async available(@Req() req) {

@@ -12,6 +12,7 @@ import { User } from './entities/user.entity';
 import { Tutor } from '../tutors/entities/tutor.entity';
 import { Reqclass } from '../reqclass/entities/reqclass.entity';
 import { Commentaire } from '../commentaires/entities/commentaires.entity'; // Chemin corrigé 
+import { Notation } from '../notations/entities/notations.entity'; // Chemin corrigé
 import { Classe } from '../classes/entities/classe.entity'; 
 import { LoginDto } from './dto/login.dto';
 import { BaseUserDto } from './dto/base-user.dto';
@@ -42,6 +43,9 @@ export class UsersService {
        
     @InjectRepository(Commentaire) 
     private commentaireRepository: Repository<Commentaire>,
+    
+    @InjectRepository(Notation) 
+    private notationRepository: Repository<Notation>,
   ) {}
 
   // Trouver tous les utilisateurs
@@ -86,7 +90,8 @@ async ville_tutor(ville: string): Promise<any[]> {
        'c.name AS classe',
        't.id AS teacher_id',
        't.mark AS mark',
-       'c.name AS name_class'
+       'c.name AS name_class',
+       'c.id AS classe_id'
      ])
      .where('u.ville = :ville', { ville }) // Ajout d'un filtre par ville si nécessaire
      .andWhere('t.isActive = true')
@@ -137,10 +142,10 @@ async search_Tutor(ville: string, classeId: number): Promise<any[]> {
     .innerJoin('rc.classe', 'c') // INNER JOIN classes
     .select([
       'ut.username AS nom_teacher',
-      'u.role AS role_utilisateur',
       't.id AS teacher_id',
       'ut.phone AS phone_teacher',
       'c.name AS nom_classe',
+      'ut.quartier AS quartier',
       'rc.status AS status'
     ])
     .where('u.id = :id', { id });
@@ -278,6 +283,79 @@ async createParent(dto: CreateParentDto) {
     user: this.cleanUser(user),
   };
 }
+
+async postNotation(
+  userId: number,
+  teacherId: number,
+  mark: number,
+  commentaire?: string,
+): Promise<{ success: boolean; message: string; average?: number }> {
+
+  if (mark < 0 || mark > 5) {
+    return {
+      success: false,
+      message: 'La note doit être comprise entre 0 et 5',
+    };
+  }
+
+  // 1. Vérifier si une notation existe déjà
+  let notation = await this.notationRepository.findOne({
+    where: {
+      userId,
+      teacherId,
+    },
+  });
+
+  if (notation) {
+    // UPDATE
+    notation.mark = mark;
+    notation.commentaire = commentaire;
+    await this.notationRepository.save(notation);
+  } else {
+    // CREATE
+    notation = this.notationRepository.create({
+      userId,
+      teacherId,
+      mark,
+      commentaire: commentaire,
+    });
+    await this.notationRepository.save(notation);
+  }
+
+  // 2. Recalculer la moyenne
+  const { average } = await this.calculateTeacherAverage(teacherId);
+
+  // 3. Mettre à jour le mark du tutor
+  await this.tutorRepository.update(
+    { id: teacherId },
+    { mark: average },
+  );
+
+  return {
+    success: true,
+    message: 'Notation enregistrée avec succès',
+    average,
+  };
+}
+
+private async calculateTeacherAverage(teacherId: number): Promise<{
+  average: number;
+  count: number;
+}> {
+  const result = await this.notationRepository
+    .createQueryBuilder('n')
+    .select('AVG(n.mark)', 'average')
+    .addSelect('COUNT(n.id)', 'count')
+    .where('n.teacherId = :teacherId', { teacherId })
+    .getRawOne();
+
+  return {
+    average: parseFloat(result.average) || 0,
+    count: parseInt(result.count) || 0,
+  };
+}
+
+
 
 async createTutor(dto: CreateTutorDto) {
   const user = await this.create({

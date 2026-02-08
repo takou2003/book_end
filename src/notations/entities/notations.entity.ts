@@ -22,6 +22,9 @@ export class Notation {
   
   @Column({ name: 'mark', type: 'float'})
   mark: number;
+  
+  @Column({ name: 'commentaire', length: 250, nullable:true})
+  commentaire?: string;
 
   @ManyToOne(() => Tutor, (tutor) => tutor.notatione)
   @JoinColumn({ name: 'teacher_id' })
