@@ -310,18 +310,23 @@ async Deniedrequest(id: number): Promise<{ success: boolean; message: string; da
   }
 }
   async TutorDetail(id: number): Promise<any[] | null>{
-    const request = this.tutorRepository
+    const infos = await this.tutorRepository
     .createQueryBuilder('t')
     .innerJoin('t.user', 'u')
     .select([
     	'u.username AS tutor_name',
     	't.id AS id',
-    	'u.ville',
-    	'u.quartier',
-    	'u.phone'
+    	'u.ville AS ville',
+    	'u.quartier AS quartier',
+    	'u.pathImage AS image',
+    	't.mark AS mark'
     ])
-    .where('t.id = :id', { id });
-   return request.getRawMany();
+    .where('t.id = :id', { id })
+    .getRawMany();
+    return infos.map(info => ({
+    ...info,
+    imageUrl: `http://103.45.247.26:3000/profils/${info.image}`,
+    }));
  }
  
  async RequestDetail(id: number): Promise<any[] | null>{

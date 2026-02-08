@@ -94,7 +94,7 @@ async ville_tutor(ville: string): Promise<any[]> {
      .getRawMany();
      return tutors.map(tutor => ({
     ...tutor,
-    imageUrl: `http://localhost:3000/profils/${tutor.image}`,
+    imageUrl: `http://103.45.247.26:3000/profils/${tutor.image}`,
     }));
 }
 
@@ -114,7 +114,8 @@ async search_Tutor(ville: string, classeId: number): Promise<any[]> {
       't.mark AS mark',
       't.isActive AS isActive',
       'c.name AS class_name',
-      't.id AS teacher_id'
+      't.id AS teacher_id',
+      'c.id AS classe_id'
     ])
     .where('u.ville = :ville', { ville })
     .andWhere('c.id = :classeId', { classeId })
@@ -122,7 +123,7 @@ async search_Tutor(ville: string, classeId: number): Promise<any[]> {
     .getRawMany();
     return tutors.map(tutor => ({
     ...tutor,
-    imageUrl: `http://localhost:3000/profils/${tutor.image}`,
+    imageUrl: `http://103.45.247.26:3000/profils/${tutor.image}`,
   }));
 }
 
