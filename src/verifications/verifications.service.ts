@@ -87,6 +87,7 @@ export class VerificationsService {
         'u.username AS username',
         'u.ville AS ville',
         't.isActive AS isActive',
+        'v.status AS status'
       ])
       .orderBy('v.createdAt', 'DESC')
       .getRawMany();
@@ -103,6 +104,8 @@ export class VerificationsService {
     return this.verificationRepository.find({
       where: { teacherId },
       order: { createdAt: 'DESC' },
+      take:1,
+      
     });
   }
 

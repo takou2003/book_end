@@ -103,6 +103,24 @@ async requestUser(@Req() req) {
     }
 }
 
+@UseGuards(JwtAuthGuard)
+  @Get('my')
+  async getMyVerifications(@Req() req) {
+    const userId = req.user.id;
+
+    // Récupération du tutorId depuis le user connecté
+    const tutorId = await this.tutorsService.getTutorIdFromUser(userId);
+
+    const verifications =
+      await this.verificationsService.getVerificationsByTeacher(tutorId);
+
+    return {
+      success: true,
+      count: verifications.length,
+      data: verifications,
+    };
+  }
+  
 @Post('responseRequest/:id/:action')
 async handleRequest(
   @Param('id') id: number,
@@ -307,6 +325,7 @@ async confirmTeacher(
         : 'Tuteur refusé',
     data: result,
   };
+  
 }
 
 }
