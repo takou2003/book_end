@@ -81,7 +81,7 @@ export class VerificationsService {
       .select([
         'v.id AS id',
         'v.teacherId AS teacherId',
-        'v.pathDocument AS pathDocument',
+        'v.pathDocument AS pathdocument',
         'v.createdAt AS createdAt',
         'v.updatedAt AS updatedAt',
         'u.username AS username',
@@ -92,7 +92,7 @@ export class VerificationsService {
       .getRawMany();
       return verifies.map(verifie => ({
     ...verifie,
-    viewdoc: `http://103.45.247.26:3000/verifications/view/${verifie.pathDocument}`,
+    viewdoc: `http://103.45.247.26:3000/verifications/view/${verifie.pathdocument}`,
     }));
   }
 
