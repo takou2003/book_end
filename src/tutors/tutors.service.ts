@@ -102,6 +102,7 @@ export class TutorsService {
     .innerJoin('t.user', 'ut') // INNER JOIN users pour l'enseignant (via teachers)
     .innerJoin('rc.classe', 'c') // INNER JOIN classes
     .select([
+      'rc.id AS id_request',
       'u.username AS nom_parent',
       'ut.quartier AS quartier_user',
       't.id AS teacher_id',
