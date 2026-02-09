@@ -74,7 +74,7 @@ export class VerificationsService {
    * GET ALL VERIFICATIONS (ADMIN)
    * ========================================================= */
   async getAllVerifications() {
-    return this.verificationRepository
+    const verifies = await this.verificationRepository
       .createQueryBuilder('v')
       .innerJoin('v.tutor', 't')
       .innerJoin('t.user', 'u')
@@ -90,6 +90,10 @@ export class VerificationsService {
       ])
       .orderBy('v.createdAt', 'DESC')
       .getRawMany();
+      return verifies.map(verifie => ({
+    ...verifie,
+    viewdoc: `http://103.45.247.26:3000/verifications/view/${verifie.pathDocument}`,
+    }));
   }
 
   /* =========================================================
