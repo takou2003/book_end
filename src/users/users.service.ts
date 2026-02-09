@@ -166,7 +166,9 @@ async search_Tutor(ville: string, classeId: number): Promise<any[]> {
       'ut.quartier AS quartier',
       'c.name AS class_name',
       'rc.status AS status',
-      'rc.id AS relation_id'
+      'rc.id AS relation_id',
+      't.id AS teacher_id',
+      'ut.phone AS phone'
     ])
     .where('u.id = :id', { id })
     .andWhere('rc.status = :status', { status });
