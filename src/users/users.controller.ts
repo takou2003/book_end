@@ -212,52 +212,58 @@ async createTutor(@Body() dto: CreateTutorDto) {
   return this.usersService.createTutor(dto);
 }
 
-  @Post('Make_request')
-	async createrequest(@Body() requestData: any): Promise<{
-	  success: boolean;
-	  data?: Reqclass;
-	  message: string;
-	  error?: string;
-	}> {
-	  try {
-	    console.log('Données reçues:', requestData); // Pour déboguer
-	    
-	    // Vérifiez que les données sont présentes
-	    if (!requestData.userId || !requestData.teacherId || !requestData.classeId) {
-	      return {
-		success: false,
-		message: 'Données manquantes',
-		error: 'userId, teacherId et classeId sont requis'
-	      };
-	    }
+@UseGuards(JwtAuthGuard)
+@Post('Make_request')
+async createrequest(
+  @Req() req,
+  @Body() body: { teacherId: number; classeId: number },
+): Promise<{
+  success: boolean;
+  data?: Reqclass;
+  message: string;
+  error?: string;
+}> {
+  try {
+    // 🔐 userId depuis le JWT
+    const userId = req.user.id;
 
-	    // Créez l'objet dans le format attendu par Reqclass
-	    const reqclassData: Partial<Reqclass> = {
-	      userId: Number(requestData.userId), // Assurez-vous que c'est le bon nom
-	      teacherId: Number(requestData.teacherId), // Assurez-vous que c'est le bon nom
-	      classeId: Number(requestData.classeId), // Assurez-vous que c'est le bon nom
-	      isActive: true
-	    };
-	    
-	    // Appelez la méthode
-	    const reqclass = await this.usersService.create_request(reqclassData);
-	    
-	    return {
-	      success: true,
-	      data: reqclass,
-	      message: 'Demande créée avec succès'
-	    };
-	    
-	  } catch (error) {
-	    console.error('Erreur lors de la création de la demande:', error);
-	    
-	    return {
-	      success: false,
-	      message: 'Erreur interne du serveur',
-	      error: process.env.NODE_ENV === 'development' ? error.message : undefined
-	    };
-	  }
-	}
+    if (!body.teacherId || !body.classeId) {
+      return {
+        success: false,
+        message: 'Données manquantes',
+        error: 'teacherId et classeId sont requis',
+      };
+    }
+
+    const reqclassData: Partial<Reqclass> = {
+      userId,
+      teacherId: Number(body.teacherId),
+      classeId: Number(body.classeId),
+      isActive: true,
+      status: 'pending',
+    };
+
+    const reqclass = await this.usersService.create_request(reqclassData);
+
+    return {
+      success: true,
+      data: reqclass,
+      message: 'Demande créée avec succès',
+    };
+  } catch (error) {
+    console.error('Erreur lors de la création de la demande:', error);
+
+    return {
+      success: false,
+      message: 'Erreur interne du serveur',
+      error:
+        process.env.NODE_ENV === 'development'
+          ? error.message
+          : undefined,
+    };
+  }
+}
+
 		
 @UseGuards(JwtAuthGuard)
 @Post('upload-profile')
