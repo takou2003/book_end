@@ -18,45 +18,30 @@ export class TutorsController {
   	private readonly tutorsService: TutorsService,
         private readonly verificationsService: VerificationsService,
   ) {}
-  
-  @Get('search/ville/:ville/id/:id')
-  async findTutorsByVilleAndClasse(
-    @Param('ville') ville: string,
-    @Param('id') id: number
-  ) {
-    try {
-      const tutors = await this.tutorsService.search_Tutor(ville, id);
-      
-      return {
-        success: true,
-        count: tutors.length, // Correction: 'tutors.length' pas 'filteredTutors'
-        total_found: tutors.length,
-        data: tutors // Correction: virgule au lieu de point-virgule
-      };
-    } catch (error) {
-      return {
-        success: false,
-        message: 'Erreur lors de la recherche des tuteurs',
-        error: process.env.NODE_ENV === 'development' ? error.message : undefined
-      };
-    }
-  }
-  
+
 @UseGuards(JwtAuthGuard)
 @Post('verifications/upload')
 @UseInterceptors(FileInterceptor('document'))
 async uploadVerification(
   @Req() req,
   @UploadedFile() file: Express.Multer.File,
+  @Body('description') description: string,
 ) {
   if (!file) {
     throw new BadRequestException('Aucun document fourni');
   }
 
+  if (!description || description.trim().length === 0) {
+    throw new BadRequestException('La description est obligatoire');
+  }
+
   const tutorId = await this.tutorsService.getTutorIdFromUser(req.user.id);
 
-  const verification =
-    await this.verificationsService.uploadDocument(tutorId, file);
+  const verification = await this.verificationsService.uploadDocument(
+    tutorId,
+    file,
+    description,
+  );
 
   return {
     success: true,
@@ -64,6 +49,8 @@ async uploadVerification(
     data: {
       id: verification.id,
       filename: verification.pathDocument,
+      description: verification.description,
+      status: verification.status,
       createdAt: verification.createdAt,
     },
   };
@@ -74,6 +61,20 @@ async uploadVerification(
 async requestUser(@Req() req) {
   const tutorId = await this.tutorsService.getTutorIdFromUser(req.user.id);
   const requests = await this.tutorsService.viewRequest(tutorId);
+
+  return {
+    success: true,
+    count: requests.length,
+    total_found: requests.length,
+    data: requests,
+  };
+}
+
+@UseGuards(JwtAuthGuard)
+@Get('ActiveRequestList')
+async requestActiveUser(@Req() req) {
+  const tutorId = await this.tutorsService.getTutorIdFromUser(req.user.id);
+  const requests = await this.tutorsService.ActiveRequest(tutorId);
 
   return {
     success: true,
@@ -246,21 +247,6 @@ async createAssclass(
   }
 }
 
-
-@Post('Teacherconfirm/:id')
-async confirmteacher(@Param('id') id: number) {
-  const result = await this.tutorsService.AcceptTeacher(id);
-  
-  if (!result.success) {
-    throw new BadRequestException(result.message);
-  }
-  
-  return {
-    message: result.message,
-    data: result.data
-  };
-}
-
    @Get('DetailRequest/:id')
    async RequestInfo(@Param('id') id: number) {
 	  try {
@@ -294,38 +280,5 @@ async confirmteacher(@Param('id') id: number) {
 	    };
 	  }
 	}
-	// src/tutors/tutors.controller.ts
-@UseGuards(JwtAuthGuard) // + AdminGuard si tu en as un
-@Post('confirm-teacher/:verificationId')
-async confirmTeacher(
-  @Param('verificationId') verificationId: number,
-  @Query('decision') decision: 'accepted' | 'denied',
-) {
-  if (!decision) {
-    throw new BadRequestException('decision est requis');
-  }
-
-  if (!['accepted', 'denied'].includes(decision)) {
-    throw new BadRequestException(
-      "decision doit être 'accepted' ou 'denied'",
-    );
-  }
-
-  const result =
-    await this.verificationsService.confirmTeacher(
-      verificationId,
-      decision,
-    );
-
-  return {
-    success: true,
-    message:
-      decision === 'accepted'
-        ? 'Tuteur validé avec succès'
-        : 'Tuteur refusé',
-    data: result,
-  };
-  
-}
 
 }

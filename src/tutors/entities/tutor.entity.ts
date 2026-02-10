@@ -37,6 +37,13 @@ export class Tutor {
     nullable: false 
   })
   isActive: boolean;
+  
+   @Column({ 
+    name: 'description', 
+    length: 250, // Même longueur
+    nullable: true 
+  })
+  description: string;
 
   @OneToOne(() => User, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'user_id' })

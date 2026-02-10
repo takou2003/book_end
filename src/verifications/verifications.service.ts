@@ -33,42 +33,56 @@ export class VerificationsService {
   /* =========================================================
    * UPLOAD DOCUMENT (JWT → tutorId)
    * ========================================================= */
-  async uploadDocument(
-    teacherId: number,
-    file: Express.Multer.File,
-  ): Promise<Verification> {
-    if (!file) {
-      throw new BadRequestException('Aucun document fourni');
-    }
+async uploadDocument(
+  teacherId: number,
+  file: Express.Multer.File,
+  description: string,
+): Promise<Verification> {
 
-    // 1️⃣ Vérifier / créer dossier
-    if (!existsSync(this.documentsDir)) {
-      mkdirSync(this.documentsDir, { recursive: true });
-    }
-
-    // 2️⃣ Nom du fichier
-    const ext = path.extname(file.originalname);
-    const filename = `verif_${teacherId}_${Date.now()}_${uuidv4()}${ext}`;
-    const finalPath = join(this.documentsDir, filename);
-
-    // 3️⃣ Sauvegarde fichier
-    if (file.buffer) {
-      await fs.writeFile(finalPath, file.buffer);
-    } else if (file.path) {
-      copyFileSync(file.path, finalPath);
-      unlinkSync(file.path);
-    } else {
-      throw new BadRequestException('Fichier invalide');
-    }
-
-    // 4️⃣ Enregistrement DB
-    const verification = this.verificationRepository.create({
+  // 1️⃣ Empêcher plusieurs demandes en attente
+  const existing = await this.verificationRepository.findOne({
+    where: {
       teacherId,
-      pathDocument: filename,
-    });
+      status: 'pending',
+    },
+  });
 
-    return this.verificationRepository.save(verification);
+  if (existing) {
+    throw new BadRequestException(
+      'Une demande de vérification est déjà en cours',
+    );
   }
+
+  // 2️⃣ Vérifier / créer dossier
+  if (!existsSync(this.documentsDir)) {
+    mkdirSync(this.documentsDir, { recursive: true });
+  }
+
+  // 3️⃣ Nom du fichier
+  const ext = path.extname(file.originalname);
+  const filename = `verif_${teacherId}_${Date.now()}_${uuidv4()}${ext}`;
+  const finalPath = join(this.documentsDir, filename);
+
+  // 4️⃣ Sauvegarde fichier
+  if (file.buffer) {
+    await fs.writeFile(finalPath, file.buffer);
+  } else if (file.path) {
+    copyFileSync(file.path, finalPath);
+    unlinkSync(file.path);
+  } else {
+    throw new BadRequestException('Fichier invalide');
+  }
+
+  // 5️⃣ Enregistrement DB
+  const verification = this.verificationRepository.create({
+    teacherId,
+    pathDocument: filename,
+    description,
+    status: 'pending',
+  });
+
+  return this.verificationRepository.save(verification);
+}
 
   /* =========================================================
    * GET ALL VERIFICATIONS (ADMIN)

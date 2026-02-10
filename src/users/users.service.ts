@@ -19,6 +19,7 @@ import { BaseUserDto } from './dto/base-user.dto';
 import { CreateParentDto } from './dto/create-parent.dto';
 import { SearchTutorDto } from './dto/search-tutor.dto';
 import { CreateTutorDto } from './dto/create-tutor.dto';
+import { CreateAdminDto } from './dto/create-admin.dto';
 
 
 @Injectable()
@@ -90,6 +91,7 @@ async ville_tutor(ville: string): Promise<any[]> {
        'c.name AS classe',
        't.id AS teacher_id',
        't.mark AS mark',
+       't.description AS description',
        'c.name AS name_class',
        'c.id AS classe_id'
      ])
@@ -120,7 +122,8 @@ async search_Tutor(ville: string, classeId: number): Promise<any[]> {
       't.isActive AS isActive',
       'c.name AS class_name',
       't.id AS teacher_id',
-      'c.id AS classe_id'
+      'c.id AS classe_id',
+      't.description AS description',
     ])
     .where('u.ville = :ville', { ville })
     .andWhere('c.id = :classeId', { classeId })
@@ -285,6 +288,23 @@ async createParent(dto: CreateParentDto) {
     user: this.cleanUser(user),
   };
 }
+
+async createAdmin(dto: CreateAdminDto) {
+  const user = await this.create({
+    ...dto,
+    role: 2,
+    fonction: 'admin',
+    latitude: dto.latitude || 0.0,     // ← GARANTIR LA VALEUR
+    longitude: dto.longitude || 0.0,   // ← GARANTIR LA VALEUR
+  });
+
+  return {
+    success: true,
+    user: this.cleanUser(user),
+  };
+}
+
+
 
 async postNotation(
   userId: number,

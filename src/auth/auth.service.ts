@@ -75,7 +75,6 @@ export class AuthService {
     return { message: 'Logged out' };
   }
   
-  // src/auth/auth.service.ts
 async getMe(userFromToken: { id: number; fonction: string }) {
   const user = await this.usersService.findMeWithRelations(userFromToken.id);
 

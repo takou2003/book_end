@@ -53,6 +53,7 @@ export class TutorsService {
         'u.phone',
         't.mark', // AJOUTEZ le mark
         't.isActive',
+        't.description',
         'c.name AS class_name'
       ])
       .where('u.ville = :ville', { ville })
@@ -110,14 +111,39 @@ export class TutorsService {
       'ut.phone AS user_phone',
       'c.name AS nom_classe',
       'rc.status AS statut_demande',
-      'rc.createdAt AS date'
+      'rc.updatedAt AS date'
     ])
     .where('t.id = :id', { id })
     .andWhere('rc.isActive = true');
 
   return query.getRawMany();
  }
+ 
+   // voir les differentes requetes
+  async ActiveRequest(id: number): Promise<any[]> {
+  const status = 'accepted';
+  const query = this.reqclassRepository
+    .createQueryBuilder('rc')
+    .innerJoin('rc.user', 'u') // INNER JOIN users pour l'utilisateur simple
+    .innerJoin('rc.tutor', 't') // INNER JOIN teachers
+    .innerJoin('t.user', 'ut') // INNER JOIN users pour l'enseignant (via teachers)
+    .innerJoin('rc.classe', 'c') // INNER JOIN classes
+    .select([
+      'rc.id AS id_request',
+      'u.username AS nom_parent',
+      'ut.quartier AS quartier_user',
+      't.id AS teacher_id',
+      'ut.username AS nom_enseignant',
+      'ut.phone AS user_phone',
+      'c.name AS nom_classe',
+      'rc.status AS statut_demande',
+      'rc.updatedAt AS date'
+    ])
+    .where('rc.status = :status', { status })
+    .andWhere('rc.teacherId = :id', { id });
 
+  return query.getRawMany();
+ }
  async commentList(id: number): Promise<any[]> {
   const comments = await this.notationRepository
     .createQueryBuilder('nt')
@@ -205,7 +231,8 @@ async AcceptTeacher(id: number): Promise<{ success: boolean; message: string; da
     	'u.ville AS ville',
     	'u.quartier AS quartier',
     	'u.pathImage AS image',
-    	't.mark AS mark'
+    	't.mark AS mark',
+    	't.description AS description',
     ])
     .where('t.id = :id', { id })
     .getRawMany();

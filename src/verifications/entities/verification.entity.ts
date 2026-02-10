@@ -37,7 +37,14 @@ export class Verification { // Assclass (sans 'e' à la fin)
     nullable: false ,
     default:'pending'
   })
-  status: 'pending' | 'accepted' | 'denied';;
+  status: 'pending' | 'accepted' | 'denied';
+  
+  @Column({ 
+    name: 'description', 
+    length: 250, // Même longueur
+    nullable: true 
+  })
+  description: string;
   
   
   @ManyToOne(() => Tutor, (tutor) => tutor.verificationed)

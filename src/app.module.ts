@@ -20,6 +20,7 @@ import { CommentairesModule } from './commentaires/commentaires.module';
 import { VerificationsModule } from './verifications/verifications.module';
 import { AuthersModule } from './authers/authers.module';
 import { AuthModule } from './auth/auth.module';
+import { AdminModule } from './admin/admin.module';
 
 
 @Module({
@@ -86,6 +87,8 @@ import { AuthModule } from './auth/auth.module';
     AuthersModule,
 
     AuthModule,
+
+    AdminModule,
   ],
   controllers: [AppController],
   providers: [AppService],

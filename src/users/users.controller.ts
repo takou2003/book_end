@@ -17,6 +17,7 @@ import { Commentaire } from '../commentaires/entities/commentaires.entity'; // C
 import { BaseUserDto } from './dto/base-user.dto';
 import { CreateParentDto } from './dto/create-parent.dto';
 import { CreateTutorDto } from './dto/create-tutor.dto';
+import { CreateAdminDto } from './dto/create-admin.dto';
 import { SearchTutorDto } from './dto/search-tutor.dto';
 //import { LoginDto } from './dto/login.dto';
 
@@ -44,12 +45,22 @@ export class UsersController {
       };
     }
   }
-@Post('search')
-async findTutors(@Body() dto: SearchTutorDto) {
+@UseGuards(JwtAuthGuard)
+@Get('search/:classeId')
+async findTutors(
+  @Req() req,
+  @Param('classeId') classeId: number,
+) {
   try {
+    if (!classeId) {
+      throw new BadRequestException('classeId est requis');
+    }
+
+    const ville = req.user.ville;
+
     const tutors = await this.usersService.search_Tutor(
-      dto.ville,
-      dto.classeId,
+      ville,
+      Number(classeId),
     );
 
     return {
@@ -70,48 +81,6 @@ async findTutors(@Body() dto: SearchTutorDto) {
   }
 }
 
-@UseGuards(JwtAuthGuard)
-@Post('comment')
-async createComment(
-  @Req() req,
-  @Body() body: any,
-) {
-  try {
-    const userId = req.user.id; // 🔐 depuis JWT
-    const { teacher_id, texte } = body;
-
-    if (!teacher_id || !texte) {
-      return {
-        success: false,
-        message: 'Données manquantes',
-        error: 'teacher_id et texte sont requis',
-      };
-    }
-
-    const commentData: Partial<Commentaire> = {
-      teacherId: Number(teacher_id),
-      userId: Number(userId),
-      texte,
-    };
-
-    const comment = await this.usersService.create_comment(commentData);
-
-    return {
-      success: true,
-      data: comment,
-      message: 'Commentaire créé avec succès',
-    };
-  } catch (error) {
-    return {
-      success: false,
-      message: 'Erreur lors de la création du commentaire',
-      error:
-        process.env.NODE_ENV === 'development'
-          ? error.message
-          : undefined,
-    };
-  }
-}
 
 @UseGuards(JwtAuthGuard)
 @Post('/rating')
@@ -206,7 +175,10 @@ async noteTutor(
 async createParent(@Body() dto: CreateParentDto) {
   return this.usersService.createParent(dto);
 }
-
+@Post('register/admin')
+async createAdmin(@Body() dto: CreateAdminDto) {
+  return this.usersService.createAdmin(dto);
+}
 @Post('register/tutor')
 async createTutor(@Body() dto: CreateTutorDto) {
   return this.usersService.createTutor(dto);
