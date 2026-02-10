@@ -24,19 +24,12 @@ export class TutorsController {
   	private readonly tutorsService: TutorsService,
         private readonly verificationsService: VerificationsService,
   ) {}
-  
 @UseGuards(JwtAuthGuard)
 @Post('verifications/upload')
 @UseInterceptors(
   FileInterceptor('document', {
-    storage: diskStorage({
-      destination: './temp/documents',
-      filename: (req, file, cb) => {
-        const uniqueName = `${uuidv4()}${path.extname(file.originalname)}`;
-        cb(null, uniqueName);
-      },
-    }),
-    limits: { fileSize: 10 * 1024 * 1024 }, // 10MB
+    storage: memoryStorage(),
+    limits: { fileSize: 5 * 1024 * 1024 },
   }),
 )
 async uploadVerification(
@@ -52,11 +45,10 @@ async uploadVerification(
     throw new BadRequestException('La description est obligatoire');
   }
 
-  // 🔐 teacherId UNIQUEMENT depuis le JWT
-  const teacherId = await this.tutorsService.getTutorIdFromUser(req.user.id);
+  const tutorId = await this.tutorsService.getTutorIdFromUser(req.user.id);
 
   const verification = await this.verificationsService.uploadDocument(
-    teacherId,
+    tutorId,
     file,
     description.trim(),
   );
@@ -64,13 +56,7 @@ async uploadVerification(
   return {
     success: true,
     message: 'Document envoyé pour vérification',
-    data: {
-      id: verification.id,
-      filename: verification.pathDocument,
-      description: verification.description,
-      status: verification.status,
-      createdAt: verification.createdAt,
-    },
+    data: verification,
   };
 }
 
