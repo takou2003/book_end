@@ -13,6 +13,11 @@ import { Classe } from '../classes/entities/classe.entity'; // Chemin corrigé
 import { User } from '../users/entities/user.entity';
 import { Assclass } from '../assclass/entities/assclass.entity';
 import { memoryStorage } from 'multer';
+import * as fs from 'fs/promises';
+import { join } from 'path';
+import { v4 as uuidv4 } from 'uuid';
+import * as path from 'path';
+import { diskStorage } from 'multer';
 @Controller('tutors')
 export class TutorsController {
   constructor(
@@ -24,19 +29,14 @@ export class TutorsController {
 @Post('verifications/upload')
 @UseInterceptors(
   FileInterceptor('document', {
-    storage: memoryStorage(),
-    limits: {
-      fileSize: 5 * 1024 * 1024, // 5 MB
-    },
-    fileFilter: (req, file, cb) => {
-      if (file.mimetype !== 'application/pdf') {
-        return cb(
-          new BadRequestException('Seuls les fichiers PDF sont autorisés'),
-          false,
-        );
-      }
-      cb(null, true);
-    },
+    storage: diskStorage({
+      destination: './temp/documents',
+      filename: (req, file, cb) => {
+        const uniqueName = `${uuidv4()}${path.extname(file.originalname)}`;
+        cb(null, uniqueName);
+      },
+    }),
+    limits: { fileSize: 10 * 1024 * 1024 }, // 10MB
   }),
 )
 async uploadVerification(
@@ -52,10 +52,11 @@ async uploadVerification(
     throw new BadRequestException('La description est obligatoire');
   }
 
-  const tutorId = await this.tutorsService.getTutorIdFromUser(req.user.id);
+  // 🔐 teacherId UNIQUEMENT depuis le JWT
+  const teacherId = await this.tutorsService.getTutorIdFromUser(req.user.id);
 
   const verification = await this.verificationsService.uploadDocument(
-    tutorId,
+    teacherId,
     file,
     description.trim(),
   );
@@ -72,7 +73,6 @@ async uploadVerification(
     },
   };
 }
-
 
 @UseGuards(JwtAuthGuard)
 @Get('RequestList')
