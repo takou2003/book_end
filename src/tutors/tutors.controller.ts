@@ -12,16 +12,33 @@ import { Commentaire } from '../commentaires/entities/commentaires.entity'; // C
 import { Classe } from '../classes/entities/classe.entity'; // Chemin corrigé
 import { User } from '../users/entities/user.entity';
 import { Assclass } from '../assclass/entities/assclass.entity';
+import { memoryStorage } from 'multer';
 @Controller('tutors')
 export class TutorsController {
   constructor(
   	private readonly tutorsService: TutorsService,
         private readonly verificationsService: VerificationsService,
   ) {}
-
+  
 @UseGuards(JwtAuthGuard)
 @Post('verifications/upload')
-@UseInterceptors(FileInterceptor('document'))
+@UseInterceptors(
+  FileInterceptor('document', {
+    storage: memoryStorage(),
+    limits: {
+      fileSize: 5 * 1024 * 1024, // 5 MB
+    },
+    fileFilter: (req, file, cb) => {
+      if (file.mimetype !== 'application/pdf') {
+        return cb(
+          new BadRequestException('Seuls les fichiers PDF sont autorisés'),
+          false,
+        );
+      }
+      cb(null, true);
+    },
+  }),
+)
 async uploadVerification(
   @Req() req,
   @UploadedFile() file: Express.Multer.File,
@@ -40,7 +57,7 @@ async uploadVerification(
   const verification = await this.verificationsService.uploadDocument(
     tutorId,
     file,
-    description,
+    description.trim(),
   );
 
   return {
@@ -55,6 +72,7 @@ async uploadVerification(
     },
   };
 }
+
 
 @UseGuards(JwtAuthGuard)
 @Get('RequestList')

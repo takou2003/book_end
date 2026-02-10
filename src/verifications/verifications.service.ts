@@ -63,15 +63,12 @@ async uploadDocument(
   const filename = `verif_${teacherId}_${Date.now()}_${uuidv4()}${ext}`;
   const finalPath = join(this.documentsDir, filename);
 
-  // 4️⃣ Sauvegarde fichier
-  if (file.buffer) {
-    await fs.writeFile(finalPath, file.buffer);
-  } else if (file.path) {
-    copyFileSync(file.path, finalPath);
-    unlinkSync(file.path);
-  } else {
+  // 4️⃣ Sauvegarde fichier (memoryStorage)
+  if (!file.buffer) {
     throw new BadRequestException('Fichier invalide');
   }
+
+  await fs.writeFile(finalPath, file.buffer);
 
   // 5️⃣ Enregistrement DB
   const verification = this.verificationRepository.create({
@@ -83,6 +80,7 @@ async uploadDocument(
 
   return this.verificationRepository.save(verification);
 }
+
 
   /* =========================================================
    * GET ALL VERIFICATIONS (ADMIN)
