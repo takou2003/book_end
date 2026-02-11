@@ -171,6 +171,32 @@ async handleRequest(
     }
 }
 
+@UseGuards(JwtAuthGuard)
+@Get('myclass')
+  async Myclasse(@Req() req) {
+    const userId = req.user.id;
+
+    // Récupération du tutorId depuis le user connecté
+    const tutorId = await this.tutorsService.getTutorIdFromUser(userId);
+    try {
+      const tutors = await this.tutorsService.classe_Tutor(tutorId);
+      
+      return {
+        success: true,
+        count: tutors.length, // Correction: 'tutors.length' pas 'filteredTutors'
+        total_found: tutors.length,
+        data: tutors // Correction: virgule au lieu de point-virgule
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: 'Erreur lors de la recherche des classes',
+        error: process.env.NODE_ENV === 'development' ? error.message : undefined
+      };
+    }
+}
+
+
 @Get('tutorInfo/:id')
 	async tutorInfo(@Param('id') id: number) {
 	  try {
