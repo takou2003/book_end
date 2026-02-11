@@ -8,6 +8,7 @@ import { Repository } from 'typeorm';
 import { Verification } from '../verifications/entities/verification.entity';
 import { Tutor } from '../tutors/entities/tutor.entity';
 import { User } from '../users/entities/user.entity';
+import { Signal } from '../signal/entities/signal.entity';
 
 @Injectable()
 export class AdminService {
@@ -20,6 +21,9 @@ export class AdminService {
     
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
+    
+    @InjectRepository(Signal)
+    private readonly signalRepository: Repository<Signal>,
   ) {}
 
   async confirmTeacher(
@@ -76,34 +80,113 @@ export class AdminService {
     viewdoc: `http://103.45.247.26:3000/verifications/view/${verifie.pathdocument}`,
     }));
   }
-  async All_tutor_actif(): Promise<any[]> {
-    const query = this.tutorRepository
-     .createQueryBuilder('t')
-     .innerJoin('t.user', 'u')
-     .select([
-       'u.username AS name',
-       'u.ville AS ville',
-       'u.quartier AS quartier',
-       'u.phone AS phone',
-       't.id AS teacher_id'
-     ])
-     .where('t.isActive = true');
-    return query.getRawMany();
-  }
+
+
+async countActiveUsersAndTutors(): Promise<{
+  totalTutors: number;
+  totalParents: number;
+}> {
+  const [totalTutors, totalParents] = await Promise.all([
+    this.tutorRepository
+      .createQueryBuilder('t')
+      .where('t.isActive = true')
+      .getCount(),
+
+    this.userRepository
+      .createQueryBuilder('u')
+      .where('u.isActive = true')
+      .andWhere('u.role = :role', { role: 0 }) // 0 = parent
+      .getCount(),
+  ]);
+
+  return {
+    totalTutors,
+    totalParents,
+  };
+}
   
-  async All_tutor_Noactif(): Promise<any[]> {
-    const query = this.tutorRepository
-     .createQueryBuilder('t')
-     .innerJoin('t.user', 'u')
-     .select([
-       'u.username AS name',
-       'u.ville AS ville',
-       'u.quartier AS quartier',
-       'u.phone AS phone',
-       't.id AS teacher_id'
-     ])
-     .where('t.isActive = false');
-    return query.getRawMany();
+async getReportedUsersSummary() {
+  const results = await this.signalRepository
+    .createQueryBuilder('signal')
+    .select('signal.direction', 'userId')
+    .addSelect('COUNT(signal.id)', 'totalSignals')
+    .addSelect('MAX(signal.createdAt)', 'lastSignalDate')
+    .groupBy('signal.direction')
+    .orderBy('lastSignalDate', 'DESC')
+    .getRawMany();
+
+  // Maintenant récupérer le dernier motif pour chaque user
+  const enrichedResults = await Promise.all(
+    results.map(async (item) => {
+      const lastSignal = await this.signalRepository.findOne({
+        where: { direction: item.userId },
+        order: { createdAt: 'DESC' },
+      });
+
+      const user = await this.userRepository.findOne({
+        where: { id: item.userId },
+        select: ['id', 'username', 'mail', 'pathImage'],
+      });
+
+      return {
+        userId: user?.id,
+        username: user?.username,
+        email: user?.mail,
+        totalSignals: Number(item.totalSignals),
+        lastSignalDate: item.lastSignalDate,
+        lastMotif: lastSignal?.motif,
+        image: `http://103.45.247.26:3000/profils/${item.pathImage}`
+      };
+    }),
+  );
+
+  return enrichedResults;
+}
+
+async getSignalDetailsByUser(userId: number) {
+  const signals = await this.signalRepository.find({
+    where: { direction: userId },
+    relations: ['author'], // auteur relation
+    order: { createdAt: 'DESC' },
+  });
+
+  if (!signals.length) {
+    throw new NotFoundException('Aucun signalement trouvé');
   }
+
+  return signals.map((signal) => ({
+    signalId: signal.id,
+    auteurId: signal.auteur,
+    auteurUsername: signal.author?.username,
+    motif: signal.motif,
+    createdAt: signal.createdAt,
+  }));
+}
+
+async toggleUserStatus(userId: number) {
+  const user = await this.userRepository.findOne({
+    where: { id: userId },
+  });
+
+  if (!user) {
+    throw new NotFoundException('Utilisateur introuvable');
+  }
+
+  // 🔁 Inverser l'état
+  user.isActive = !user.isActive;
+
+  await this.userRepository.save(user);
+
+  return {
+    userId: user.id,
+    username: user.username,
+    isActive: user.isActive,
+    message: user.isActive
+      ? 'Compte activé avec succès'
+      : 'Compte désactivé avec succès',
+  };
+}
+
+
 }
 

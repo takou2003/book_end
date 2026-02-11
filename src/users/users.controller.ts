@@ -9,6 +9,8 @@ import { diskStorage } from 'multer';
 import * as path from 'path';
 import { v4 as uuidv4 } from 'uuid';
 import { UsersService } from './users.service';
+import { SignalService } from '../signal/signal.service';
+import { CreateSignalDto } from '../signal/dto/create-signal.dto';
 import { User } from './entities/user.entity';
 import { Tutor } from '../tutors/entities/tutor.entity';
 import { Reqclass } from '../reqclass/entities/reqclass.entity'; // Chemin corrigé
@@ -24,7 +26,11 @@ import { SearchTutorDto } from './dto/search-tutor.dto';
 
 @Controller('users')
 export class UsersController {
-  constructor(private readonly usersService: UsersService) {}
+  constructor(
+  
+  private readonly usersService: UsersService,
+  private readonly signalService: SignalService
+  ) {}
   @UseGuards(JwtAuthGuard)  
   @Get('RequestList')
   async requestUser(@Req() req){ 
@@ -310,6 +316,31 @@ async uploadProfileImage(
       error: process.env.NODE_ENV === 'development' ? error.message : undefined
     };
   }
+@UseGuards(JwtAuthGuard)
+@Post('signal-user')
+async signalUser(
+  @Req() req,
+  @Body() dto: CreateSignalDto,
+) {
+  const userId = req.user.id;
+
+  const signal = await this.signalService.createSignal(
+    userId,
+    dto,
+  );
+
+  return {
+    success: true,
+    message: 'Compte signalé avec succès',
+    data: {
+      id: signal.id,
+      direction: signal.direction,
+      motif: signal.motif,
+      createdAt: signal.createdAt,
+    },
+  };
+}
+
  @UseGuards(JwtAuthGuard)
   @Get('me')
   getProfile(@Req() req) {

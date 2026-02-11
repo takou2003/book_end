@@ -13,20 +13,30 @@ export class AuthService {
     private readonly usersService: UsersService,
   ) {}
 
-  async validateUser(mail: string, password: string): Promise<User> {
-    const user = await this.usersService.findByEmail(mail);
+async validateUser(mail: string, password: string): Promise<User> {
+  const user = await this.usersService.findByEmail(mail);
 
-    if (!user || !user.isActive) {
-      throw new UnauthorizedException('Invalid credentials');
-    }
-
-    const ok = await bcrypt.compare(password, user.password);
-    if (!ok) {
-      throw new UnauthorizedException('Invalid credentials');
-    }
-
-    return user;
+  // ❌ User not found
+  if (!user) {
+    throw new UnauthorizedException('Invalid email or password');
   }
+
+  // ❌ Wrong password
+  const isPasswordValid = await bcrypt.compare(password, user.password);
+  if (!isPasswordValid) {
+    throw new UnauthorizedException('Invalid email or password');
+  }
+
+  // 🚫 Account blocked
+  if (!user.isActive) {
+    throw new UnauthorizedException(
+      'Your account has been blocked. Please contact the administrator.',
+    );
+  }
+
+  return user;
+}
+
 
   async login(user: User) {
     const payload = {

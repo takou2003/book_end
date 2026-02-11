@@ -21,6 +21,7 @@ import { VerificationsModule } from './verifications/verifications.module';
 import { AuthersModule } from './authers/authers.module';
 import { AuthModule } from './auth/auth.module';
 import { AdminModule } from './admin/admin.module';
+import { SignalModule } from './signal/signal.module';
 
 
 @Module({
@@ -89,6 +90,8 @@ import { AdminModule } from './admin/admin.module';
     AuthModule,
 
     AdminModule,
+
+    SignalModule,
   ],
   controllers: [AppController],
   providers: [AppService],

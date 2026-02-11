@@ -13,6 +13,7 @@ import { Tutor } from '../../tutors/entities/tutor.entity';
 import { Reqclass } from '../../reqclass/entities/reqclass.entity';
 import { Notation } from '../../notations/entities/notations.entity';
 import { Commentaire } from '../../commentaires/entities/commentaires.entity'; // Chemin corrigé
+import { Signal } from '../../signal/entities/signal.entity';
 import { RefreshToken } from '../../auth/entities/refresh-token.entity'; // Chemin corrigé
 
 @Entity('users')
@@ -134,4 +135,11 @@ export class User {
   
   @OneToMany(() => Notation, (notation) => notation.user)
   notatione: Notation[]; // Notez le nom: assclasse (au singulier)
+  
+  @OneToMany(() => Signal, (signal) => signal.author)
+  sentSignals: Signal[];
+
+  @OneToMany(() => Signal, (signal) => signal.target)
+  receivedSignals: Signal[];
+
 }
