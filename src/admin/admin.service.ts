@@ -112,10 +112,9 @@ async getReportedUsersSummary() {
     .addSelect('COUNT(signal.id)', 'totalSignals')
     .addSelect('MAX(signal.createdAt)', 'lastSignalDate')
     .groupBy('signal.direction')
-    .orderBy('lastSignalDate', 'DESC')
+    .orderBy('"lastSignalDate"', 'DESC')
     .getRawMany();
 
-  // Maintenant récupérer le dernier motif pour chaque user
   const enrichedResults = await Promise.all(
     results.map(async (item) => {
       const lastSignal = await this.signalRepository.findOne({
@@ -135,13 +134,16 @@ async getReportedUsersSummary() {
         totalSignals: Number(item.totalSignals),
         lastSignalDate: item.lastSignalDate,
         lastMotif: lastSignal?.motif,
-        image: `http://103.45.247.26:3000/profils/${item.pathImage}`
+        image: user?.pathImage
+          ? `http://103.45.247.26:3000/profils/${user.pathImage}`
+          : null,
       };
     }),
   );
 
   return enrichedResults;
 }
+
 
 async getSignalDetailsByUser(userId: number) {
   const signals = await this.signalRepository.find({
