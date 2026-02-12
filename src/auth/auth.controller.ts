@@ -7,7 +7,8 @@ import {
   UseGuards,
   Req,
   Get,
-
+  HttpCode,
+  BadRequestException
 } from '@nestjs/common';
 
 import { AuthService } from './auth.service';
@@ -27,10 +28,16 @@ export class AuthController {
     return this.authService.login(user);
   }
 
-  @Post('refresh')
-  refresh(@Body('refreshToken') token: string) {
-    return this.authService.refresh(token);
+@Post('refresh')
+@HttpCode(200)
+refresh(@Body('refreshToken') token: string) {
+  if (!token) {
+    throw new BadRequestException('Refresh token requis');
   }
+
+  return this.authService.refresh(token);
+}
+
 
   @Post('logout')
   @UseGuards(JwtAuthGuard)
