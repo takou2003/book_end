@@ -131,6 +131,7 @@ export class TutorsService {
     .select([
       'rc.id AS id_request',
       'u.username AS nom_parent',
+      'u.id AS parent_id',
       'ut.quartier AS quartier_user',
       't.id AS teacher_id',
       'ut.username AS nom_enseignant',
@@ -227,12 +228,13 @@ async AcceptTeacher(id: number): Promise<{ success: boolean; message: string; da
     .innerJoin('t.user', 'u')
     .select([
     	'u.username AS tutor_name',
-    	't.id AS id',
+    	't.id AS teacher_id',
     	'u.ville AS ville',
     	'u.quartier AS quartier',
     	'u.pathImage AS image',
     	't.mark AS mark',
     	't.description AS description',
+    	'u.id AS user_id'
     ])
     .where('t.id = :id', { id })
     .getRawMany();

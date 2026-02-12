@@ -47,18 +47,18 @@ async validateUser(mail: string, password: string): Promise<User> {
     };
 
     const accessToken = this.jwtService.sign(payload, {
-      expiresIn: '15m',
+      expiresIn: '30m',
       secret: process.env.JWT_SECRET!,
     });
 
     const refreshToken = this.jwtService.sign(payload, {
-      expiresIn: '7d',
+      expiresIn: '90d',
       secret: process.env.JWT_REFRESH_SECRET!,
     });
 
     await this.usersService.updateRefreshToken(user.id, refreshToken);
 
-    return { accessToken, refreshToken };
+    return { accessToken, refreshToken, expiresIn: 1800,};
   }
 
   async refresh(refreshToken: string) {

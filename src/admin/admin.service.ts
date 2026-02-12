@@ -71,6 +71,7 @@ export class AdminService {
         'u.username AS username',
         'u.ville AS ville',
         't.isActive AS isActive',
+        'v.description AS description',
         'v.status AS status'
       ])
       .orderBy('v.createdAt', 'DESC')
