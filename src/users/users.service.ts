@@ -20,6 +20,7 @@ import { CreateParentDto } from './dto/create-parent.dto';
 import { SearchTutorDto } from './dto/search-tutor.dto';
 import { CreateTutorDto } from './dto/create-tutor.dto';
 import { CreateAdminDto } from './dto/create-admin.dto';
+import { UpdateProfileDto } from './dto/update-profile.dto';
 
 
 @Injectable()
@@ -178,6 +179,48 @@ async search_Tutor(ville: string, classeId: number): Promise<any[]> {
     
   return query.getRawMany();
  }
+ 
+ async updateProfile(
+  userId: number,
+  dto: UpdateProfileDto,
+) {
+  const user = await this.usersRepository.findOne({
+    where: { id: userId },
+  });
+
+  if (!user) {
+    throw new NotFoundException('Utilisateur introuvable');
+  }
+
+  // 🔎 Vérifier unicité username
+  if (dto.username && dto.username !== user.username) {
+    const usernameExists = await this.usersRepository.findOne({
+      where: { username: dto.username },
+    });
+
+    if (usernameExists) {
+      throw new BadRequestException(
+        'Ce nom d’utilisateur est déjà utilisé',
+      );
+    }
+
+    user.username = dto.username;
+  }
+
+  // ✅ Modifier ville
+  if (dto.ville) {
+    user.ville = dto.ville;
+  }
+
+  await this.usersRepository.save(user);
+
+  return {
+    success: true,
+    message: 'Profil mis à jour avec succès',
+    user: this.cleanUser(user),
+  };
+}
+
  
  create_comment(commentData: Partial<Commentaire>): Promise<Commentaire> {
     const comment = this.commentaireRepository.create(commentData);

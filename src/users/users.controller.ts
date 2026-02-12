@@ -2,7 +2,7 @@
 import { Controller, Get, Post, Body, Param, Query, HttpCode, HttpStatus, UploadedFile,
   UseInterceptors,
   ParseIntPipe,
-  BadRequestException, UseGuards, Req} from '@nestjs/common';
+  BadRequestException, UseGuards, Req, Patch} from '@nestjs/common';
   import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
@@ -21,6 +21,7 @@ import { CreateParentDto } from './dto/create-parent.dto';
 import { CreateTutorDto } from './dto/create-tutor.dto';
 import { CreateAdminDto } from './dto/create-admin.dto';
 import { SearchTutorDto } from './dto/search-tutor.dto';
+import { UpdateProfileDto } from './dto/update-profile.dto';
 //import { LoginDto } from './dto/login.dto';
 
 
@@ -87,6 +88,14 @@ async findTutors(
   }
 }
 
+@UseGuards(JwtAuthGuard)
+  @Patch('up_info')
+  updateMe(
+    @Req() req,
+    @Body() dto: UpdateProfileDto,
+  ) {
+    return this.usersService.updateProfile(req.user.id, dto);
+ }
 
 @UseGuards(JwtAuthGuard)
 @Post('/rating')
