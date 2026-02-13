@@ -53,7 +53,7 @@ export class UsersController {
     }
   }
 @UseGuards(JwtAuthGuard)
-@Get('search/:classeId')
+@Post('search/:classeId')
 async findTutors(
   @Req() req,
   @Param('classeId') classeId: number,
