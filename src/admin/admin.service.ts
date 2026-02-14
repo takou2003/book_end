@@ -137,7 +137,7 @@ async getReportedUsersSummary() {
         totalSignals: Number(item.totalSignals),
         lastSignalDate: item.lastSignalDate,
         lastMotif: lastSignal?.motif,
-        status: user?.isActive;
+        status: user?.isActive,
         image: user?.pathImage
           ? `http://103.45.247.26:3000/profils/${user.pathImage}`
           : null,
