@@ -79,24 +79,15 @@ export class UsersService {
 }
 
 async ville_tutor(ville: string): Promise<any[]> {
-
-  const subQuery = this.tutorRepository
-    .createQueryBuilder('t')
-    .innerJoin('t.user', 'u')
-    .where('u.ville = :ville', { ville })
-    .andWhere('t.isActive = true')
-    .select('t.id')
-    .distinct(true)
-    .orderBy('RANDOM()')
-    .limit(5);
-
   const tutors = await this.tutorRepository
     .createQueryBuilder('t')
     .innerJoin('t.user', 'u')
     .innerJoin('t.assclasse', 'ac')
     .innerJoin('ac.classe', 'c')
-    .where(`t.id IN (${subQuery.getQuery()})`)
-    .setParameters(subQuery.getParameters())
+    .where('u.ville = :ville', { ville })
+    .andWhere('t.isActive = true')
+    .orderBy('RANDOM()')
+    .limit(5)
     .select([
       't.id AS teacher_id',
       'u.username AS name',
@@ -110,6 +101,7 @@ async ville_tutor(ville: string): Promise<any[]> {
     ])
     .getRawMany();
 
+  // Ajouter l'URL de l'image
   return tutors.map(tutor => ({
     ...tutor,
     imageUrl: `http://103.45.247.26:3000/profils/${tutor.image}`,
