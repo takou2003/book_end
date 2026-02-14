@@ -111,7 +111,8 @@ export class TutorsService {
       'ut.phone AS user_phone',
       'c.name AS nom_classe',
       'rc.status AS statut_demande',
-      'rc.updatedAt AS date'
+      'rc.updatedAt AS date',
+      'u.id AS parent_id'
     ])
     .where('t.id = :id', { id })
     .andWhere('rc.isActive = true');

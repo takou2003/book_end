@@ -80,24 +80,34 @@ export class UsersService {
 
 async ville_tutor(ville: string): Promise<any[]> {
 
+  const subQuery = this.tutorRepository
+    .createQueryBuilder('t')
+    .innerJoin('t.user', 'u')
+    .where('u.ville = :ville', { ville })
+    .andWhere('t.isActive = true')
+    .select('t.id')
+    .distinct(true)
+    .orderBy('RANDOM()')
+    .limit(5);
+
   const tutors = await this.tutorRepository
     .createQueryBuilder('t')
     .innerJoin('t.user', 'u')
     .innerJoin('t.assclasse', 'ac')
     .innerJoin('ac.classe', 'c')
+    .where(`t.id IN (${subQuery.getQuery()})`)
+    .setParameters(subQuery.getParameters())
     .select([
-      'DISTINCT t.id AS teacher_id',
+      't.id AS teacher_id',
       'u.username AS name',
       'u.ville AS ville',
       'u.quartier AS quartier',
       'u.pathImage AS image',
       't.mark AS mark',
-      't.description AS description'
+      't.description AS description',
+      'c.name AS classe',
+      'c.id AS classe_id'
     ])
-    .where('u.ville = :ville', { ville })
-    .andWhere('t.isActive = true')
-    .orderBy('RANDOM()') // PostgreSQL random
-    .limit(5)
     .getRawMany();
 
   return tutors.map(tutor => ({
@@ -105,6 +115,7 @@ async ville_tutor(ville: string): Promise<any[]> {
     imageUrl: `http://103.45.247.26:3000/profils/${tutor.image}`,
   }));
 }
+
 
 async search_Tutor(ville: string, classeId: number): Promise<any[]> {
   const tutors = await this.tutorRepository
@@ -151,7 +162,8 @@ async search_Tutor(ville: string, classeId: number): Promise<any[]> {
       'c.name AS nom_classe',
       'ut.quartier AS quartier',
       'rc.status AS status',
-      'rc.createdAt AS date'
+      'rc.createdAt AS date',
+      'ut.id AS id'
     ])
     .where('u.id = :id', { id });
 
