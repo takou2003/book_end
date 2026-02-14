@@ -150,7 +150,8 @@ async search_Tutor(ville: string, classeId: number): Promise<any[]> {
       'ut.phone AS phone_teacher',
       'c.name AS nom_classe',
       'ut.quartier AS quartier',
-      'rc.status AS status'
+      'rc.status AS status',
+      'rc.createdAt AS date'
     ])
     .where('u.id = :id', { id });
 
