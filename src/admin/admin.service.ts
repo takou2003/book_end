@@ -72,7 +72,9 @@ export class AdminService {
         'u.ville AS ville',
         't.isActive AS isActive',
         'v.description AS description',
-        'v.status AS status'
+        'v.status AS status',
+        
+
       ])
       .orderBy('v.createdAt', 'DESC')
       .getRawMany();
@@ -125,7 +127,7 @@ async getReportedUsersSummary() {
 
       const user = await this.userRepository.findOne({
         where: { id: item.userId },
-        select: ['id', 'username', 'mail', 'pathImage'],
+        select: ['id', 'username', 'mail', 'pathImage', 'isActive'],
       });
 
       return {
@@ -135,6 +137,7 @@ async getReportedUsersSummary() {
         totalSignals: Number(item.totalSignals),
         lastSignalDate: item.lastSignalDate,
         lastMotif: lastSignal?.motif,
+        status: user?isActive;
         image: user?.pathImage
           ? `http://103.45.247.26:3000/profils/${user.pathImage}`
           : null,
