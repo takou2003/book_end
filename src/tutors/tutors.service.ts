@@ -170,10 +170,24 @@ export class TutorsService {
     return this.commentaireRepository.save(comment);
   }
   
-  create_assclass(assData: Partial<Assclass>): Promise<Assclass> {
-    const assclass = this.assClassRepository.create(assData);
-    return this.assClassRepository.save(assclass);
+ async create_assclass(data: Partial<Assclass>) {
+
+  const existing = await this.assClassRepository.findOne({
+    where: {
+      teacherId: data.teacherId,
+      classeId: data.classeId,
+    },
+  });
+
+  if (existing) {
+    throw new BadRequestException(
+      'Ce tutor est déjà associé à cette classe',
+    );
   }
+
+  const assclass = this.assClassRepository.create(data);
+  return this.assClassRepository.save(assclass);
+}
 
 
 async getTutorIdFromUser(userId: number): Promise<number> {

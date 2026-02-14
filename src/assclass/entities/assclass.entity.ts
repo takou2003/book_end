@@ -8,7 +8,9 @@ import {
 } from 'typeorm';
 import { Tutor } from '../../tutors/entities/tutor.entity';
 import { Classe } from '../../classes/entities/classe.entity';
+import { Unique } from 'typeorm';
 
+@Unique('UQ_assclass_teacher_classe', ['teacherId', 'classeId'])
 @Entity('assclass')
 export class Assclass { // Assclass (sans 'e' à la fin)
   @PrimaryGeneratedColumn()
