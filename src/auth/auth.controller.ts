@@ -8,7 +8,8 @@ import {
   Req,
   Get,
   HttpCode,
-  BadRequestException
+  BadRequestException,
+  Delete,
 } from '@nestjs/common';
 
 import { AuthService } from './auth.service';
@@ -44,7 +45,7 @@ refresh(@Body('refreshToken') token: string) {
   logout(@Req() req) {
     return this.authService.logout(req.user.userId);
   }
-  
+    
   @UseGuards(JwtAuthGuard)
   @Get('me')
   async me(@Req() req) {

@@ -14,6 +14,7 @@ import { Reqclass } from '../reqclass/entities/reqclass.entity';
 import { Commentaire } from '../commentaires/entities/commentaires.entity'; // Chemin corrigé 
 import { Notation } from '../notations/entities/notations.entity'; // Chemin corrigé
 import { Classe } from '../classes/entities/classe.entity'; 
+import { Notification } from '../notifications/entities/notifications.entity'; 
 import { LoginDto } from './dto/login.dto';
 import { BaseUserDto } from './dto/base-user.dto';
 import { CreateParentDto } from './dto/create-parent.dto';
@@ -21,6 +22,7 @@ import { SearchTutorDto } from './dto/search-tutor.dto';
 import { CreateTutorDto } from './dto/create-tutor.dto';
 import { CreateAdminDto } from './dto/create-admin.dto';
 import { UpdateProfileDto } from './dto/update-profile.dto';
+import { Expo } from 'expo-server-sdk';
 
 
 @Injectable()
@@ -29,7 +31,7 @@ export class UsersService {
   private readonly tempDir = join(process.cwd(), 'temp');
   private readonly allowedMimeTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
   private readonly maxFileSize = 5 * 1024 * 1024; // 5MB
-  
+  private expo: Expo;
   constructor(
     @InjectRepository(User)
     private usersRepository: Repository<User>,
@@ -48,7 +50,10 @@ export class UsersService {
     
     @InjectRepository(Notation) 
     private notationRepository: Repository<Notation>,
-  ) {}
+    
+    @InjectRepository(Notification) 
+    private notificationRepository: Repository<Notification>,
+  ) {this.expo = new Expo();}
 
   // Trouver tous les utilisateurs
   findAll(): Promise<User[]> {
@@ -60,7 +65,7 @@ export class UsersService {
   findByEmail(mail: string) {
     return this.usersRepository.findOne({ where: { mail } });
   }
-
+  
   findById(id: number) {
     return this.usersRepository.findOne({ where: { id } });
   }
@@ -106,6 +111,86 @@ async ville_tutor(ville: string): Promise<any[]> {
     ...tutor,
     imageUrl: `${process.env.URL}/profils/${tutor.image}`,
   }));
+}
+
+async sendNotification(
+  userId: number,
+  title: string,
+  body: string,
+): Promise<Notification | void> {
+  const user = await this.usersRepository.findOne({
+    where: { id: userId },
+  });
+
+  if (!user || !user.deviceToken) return;
+
+  const deviceToken = user.deviceToken;
+
+  if (!Expo.isExpoPushToken(deviceToken)) return;
+
+  // Sauvegarde en base
+  const notification = await this.notificationRepository.save({
+    title,
+    body,
+    deviceToken,
+    userId,
+    isRead: false, // toujours à false à la création
+  });
+
+  // Envoi via Expo
+  try {
+    await this.expo.sendPushNotificationsAsync([
+      {
+        to: deviceToken,
+        sound: 'default',
+        title,
+        body,
+      },
+    ]);
+  } catch (error) {
+    console.error('Erreur envoi notification Expo', error);
+  }
+
+  return notification;
+}
+
+async getGroupedNotifications(userId: number) {
+  return this.notificationRepository
+    .createQueryBuilder('n')
+    .select('n.title', 'title')
+    .addSelect('MAX(n.createdAt)', 'lastDate')
+    .addSelect(
+      `(
+        SELECT body FROM notifications n2
+        WHERE n2.title = n.title
+        AND n2.user_id = :userId
+        ORDER BY n2.created_at DESC
+        LIMIT 1
+      )`,
+      'lastBody',
+    )
+    .addSelect(
+      `COUNT(CASE WHEN n.isRead = false THEN 1 END)`,
+      'unreadCount',
+    )
+    .where('n.user_id = :userId', { userId })
+    .groupBy('n.title')
+    .orderBy('lastDate', 'DESC')
+    .getRawMany();
+}
+
+async getNotificationsByTitle(userId: number, title: string) {
+  return this.notificationRepository.find({
+    where: { userId, title },
+    order: { createdAt: 'DESC' },
+  });
+}
+
+async markAllAsRead(userId: number) {
+  await this.notificationRepository.update(
+    { userId, isRead: false },
+    { isRead: true }
+  );
 }
 
 

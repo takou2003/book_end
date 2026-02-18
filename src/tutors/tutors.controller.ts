@@ -277,6 +277,44 @@ async createAssclass(
   }
 }
 
+@UseGuards(JwtAuthGuard)
+@Post('RemoveTutorInclasse')
+async deleteAssclass(
+  @Req() req,
+  @Query('classe_id') classeId: number,
+): Promise<{
+  success: boolean;
+  data?: Assclass;
+  message: string;
+  error?: string;
+}> {
+  try {
+    if (!classeId) {
+      return {
+        success: false,
+        message: 'Données manquantes',
+        error: 'classe_id est requis',
+      };
+    }
+
+    await this.tutorsService.delete_assclass(classeId);
+
+    return {
+      success: true,
+      message: 'Association delete avec succès',
+    };
+  } catch (error) {
+    return {
+      success: false,
+      message: 'Erreur lors de la supression',
+      error:
+        process.env.NODE_ENV === 'development'
+          ? error.message
+          : undefined,
+    };
+  }
+}
+
    @Get('DetailRequest/:id')
    async RequestInfo(@Param('id') id: number) {
 	  try {

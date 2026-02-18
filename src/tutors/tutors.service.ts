@@ -1,5 +1,5 @@
 // src/tutors/tutors.service.ts
-import { Injectable , BadRequestException} from '@nestjs/common';
+import { Injectable , BadRequestException, NotFoundException} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm'; // AJOUTEZ
 import { Repository } from 'typeorm'; // AJOUTEZ
 import { Tutor } from './entities/tutor.entity';
@@ -35,33 +35,6 @@ export class TutorsService {
     @InjectRepository(Notation) 
     private notationRepository: Repository<Notation>,
   ) {}
-  
-  // Méthode avec les JOINs corrects
-  async search_Tutor(ville: string, classeId: number): Promise<any[]> {
-    const query = this.tutorRepository
-      .createQueryBuilder('t')
-      .innerJoin('t.user', 'u') // INNER JOIN users
-      .innerJoin('t.assclasse', 'ac') // Correction: 'assclasse' pas 'asslasse'
-      .innerJoin('ac.classe', 'c') // INNER JOIN classes
-      .select([
-        'u.id AS user_id',
-        'u.username',
-        'u.ville',
-        'u.quartier',
-        'u.latitude',
-        'u.longitude',
-        'u.phone',
-        't.mark', // AJOUTEZ le mark
-        't.isActive',
-        't.description',
-        'c.name AS class_name'
-      ])
-      .where('u.ville = :ville', { ville })
-      .andWhere('c.id = :classeId', { classeId })
-      .andWhere('t.isActive = true');
-
-    return query.getRawMany();
-  }
   
     // Méthode avec les JOINs corrects
   async classe_Tutor(teacherId: number): Promise<any[]> {
@@ -190,6 +163,19 @@ export class TutorsService {
   return this.assClassRepository.save(assclass);
 }
 
+// Suppression d'une assclass par ID
+  async delete_assclass(id: number): Promise<void> {
+    const assclass = await this.assClassRepository.findOne({
+      where: { id },
+    });
+
+    if (!assclass) {
+      throw new NotFoundException('Association non trouvée');
+    }
+
+    await this.assClassRepository.remove(assclass);
+  }
+
 
 async getTutorIdFromUser(userId: number): Promise<number> {
   const user = await this.usersRepository.findOne({
@@ -206,35 +192,6 @@ async getTutorIdFromUser(userId: number): Promise<number> {
   }
 
   return user.tutor.id;
-}
-
-
-async AcceptTeacher(id: number): Promise<{ success: boolean; message: string; data?: any }> {
-  try {
-    const result = await this.tutorRepository.update(
-      { id: id },
-      { 
-        isActive: true,
-      }
-    );
-    if (result.affected === 0) {
-      return {
-        success: false,
-        message: 'tutor non trouvée'
-      };
-    }
-    const updatedTutor = await this.tutorRepository.findOne({ where: { id } });
-    return {
-      success: true,
-      message: 'Requête acceptée',
-      data: updatedTutor
-    };
-  } catch (error) {
-    return {
-      success: false,
-      message: 'Erreur lors de l\'acceptation'
-    };
-  }
 }
 
   async TutorDetail(id: number): Promise<any[] | null>{

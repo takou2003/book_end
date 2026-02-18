@@ -1,8 +1,8 @@
 // src/auth/auth.service.ts
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable, UnauthorizedException, NotFoundException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
-
+import { Repository } from 'typeorm'; // AJOUTEZ
 import { UsersService } from '../users/users.service';
 import { User } from '../users/entities/user.entity';
 
@@ -84,7 +84,8 @@ async validateUser(mail: string, password: string): Promise<User> {
     await this.usersService.removeRefreshToken(userId);
     return { message: 'Logged out' };
   }
-  
+
+
 async getMe(userFromToken: { id: number; fonction: string }) {
   const user = await this.usersService.findMeWithRelations(userFromToken.id);
 
@@ -102,7 +103,7 @@ async getMe(userFromToken: { id: number; fonction: string }) {
     quartier: user.quartier,
     role: user.role,
     pathImage: user.pathImage,
-    imageUrl: `http://localhost:3000/profils/${image}`,
+    imageUrl: `${process.env.URL}/profils/${image}`,
   };
 
   // 🎓 TUTOR

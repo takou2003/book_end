@@ -19,5 +19,6 @@ import { VerificationsModule } from '../verifications/verifications.module';
   ],
   controllers: [TutorsController],
   providers: [TutorsService],
+  exports: [TutorsService], // 👈 OBLIGATOIRE
 })
 export class TutorsModule {}

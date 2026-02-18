@@ -15,6 +15,7 @@ import { Notation } from '../../notations/entities/notations.entity';
 import { Commentaire } from '../../commentaires/entities/commentaires.entity'; // Chemin corrigé
 import { Signal } from '../../signal/entities/signal.entity';
 import { RefreshToken } from '../../auth/entities/refresh-token.entity'; // Chemin corrigé
+import { Notification } from '../../notifications/entities/notifications.entity'; // Chemin corrigé
 
 @Entity('users')
 export class User {
@@ -121,6 +122,13 @@ export class User {
   })
   refreshToken: string;
   
+   @Column({ 
+    name: 'deviceToken', 
+    length: 250, // Même longueur
+    nullable: true 
+  })
+  deviceToken: string;
+  
   @OneToOne(() => Tutor, (tutor) => tutor.user)
   tutor: Tutor; // Relation simple sans configuration de jointure;
   
@@ -129,6 +137,9 @@ export class User {
   
   @OneToMany(() => RefreshToken, (rt) => rt.user)
   refreshTokens: RefreshToken[];
+  
+  @OneToMany(() => Notification, (notif) => notif.user)
+  notifications: Notification[];
 
   @OneToMany(() => Commentaire, (commentaire) => commentaire.user)
   commentaires: Commentaire[]; // Notez le nom: assclasse (au singulier)

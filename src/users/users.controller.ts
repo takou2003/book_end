@@ -2,7 +2,7 @@
 import { Controller, Get, Post, Body, Param, Query, HttpCode, HttpStatus, UploadedFile,
   UseInterceptors,
   ParseIntPipe,
-  BadRequestException, UseGuards, Req, Patch} from '@nestjs/common';
+  BadRequestException, UseGuards, Req, Patch, Delete} from '@nestjs/common';
   import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
@@ -10,6 +10,7 @@ import * as path from 'path';
 import { v4 as uuidv4 } from 'uuid';
 import { UsersService } from './users.service';
 import { SignalService } from '../signal/signal.service';
+import { TutorsService } from '../tutors/tutors.service';
 import { CreateSignalDto } from '../signal/dto/create-signal.dto';
 import { User } from './entities/user.entity';
 import { Tutor } from '../tutors/entities/tutor.entity';
@@ -30,7 +31,8 @@ export class UsersController {
   constructor(
   
   private readonly usersService: UsersService,
-  private readonly signalService: SignalService
+  private readonly signalService: SignalService,
+  private readonly tutorService: TutorsService,
   ) {}
   @UseGuards(JwtAuthGuard)  
   @Get('RequestList')
@@ -87,7 +89,6 @@ async findTutors(
     };
   }
 }
-
 @UseGuards(JwtAuthGuard)
   @Patch('up_info')
   updateMe(
@@ -229,7 +230,9 @@ async createrequest(
       isActive: true,
       status: 'pending',
     };
-
+    
+    const teacher_original_id = await this.tutorService.getTutorIdFromUser(body.teacherId);
+    const make_push = await this.usersService.sendNotification(teacher_original_id, "Demande", "vous avez une nouvelle demande d'enseignement");
     const reqclass = await this.usersService.create_request(reqclassData);
 
     return {
