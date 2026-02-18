@@ -163,7 +163,7 @@ export class TutorsService {
     .getRawMany();
     return comments.map(comment => ({
     ...comment,
-    imageUrl: `http://103.45.247.26:3000/profils/${comment.image}`,
+    imageUrl: `${process.env.URL}/profils/${comment.image}`,
     }));
  }
  create_comment(commentData: Partial<Commentaire>): Promise<Commentaire> {
@@ -255,7 +255,7 @@ async AcceptTeacher(id: number): Promise<{ success: boolean; message: string; da
     .getRawMany();
     return infos.map(info => ({
     ...info,
-    imageUrl: `http://103.45.247.26:3000/profils/${info.image}`,
+    imageUrl: `${process.env.URL}/profils/${info.image}`,
     }));
  }
  

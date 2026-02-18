@@ -104,7 +104,7 @@ async ville_tutor(ville: string): Promise<any[]> {
   // Ajouter l'URL de l'image
   return tutors.map(tutor => ({
     ...tutor,
-    imageUrl: `http://103.45.247.26:3000/profils/${tutor.image}`,
+    imageUrl: `${process.env.URL}/profils/${tutor.image}`,
   }));
 }
 
@@ -135,7 +135,7 @@ async search_Tutor(ville: string, classeId: number): Promise<any[]> {
     .getRawMany();
     return tutors.map(tutor => ({
     ...tutor,
-    imageUrl: `http://103.45.247.26:3000/profils/${tutor.image}`,
+    imageUrl: `${process.env.URL}/profils/${tutor.image}`,
   }));
 }
 
@@ -666,7 +666,7 @@ async createTutor(dto: CreateTutorDto) {
       ...user,
       pathImage: finalImage,
       imageUrl: `/profils/${finalImage}`,
-      fullImageUrl: `http://localhost:3000/profils/${finalImage}`,
+      fullImageUrl: `${process.env.URL}/profils/${finalImage}`,
     };
   }
 

@@ -80,7 +80,7 @@ export class AdminService {
       .getRawMany();
       return verifies.map(verifie => ({
     ...verifie,
-    viewdoc: `http://103.45.247.26:3000/verifications/view/${verifie.pathdocument}`,
+    viewdoc: `${process.env.URL}/verifications/view/${verifie.pathdocument}`,
     }));
   }
 
@@ -139,7 +139,7 @@ async getReportedUsersSummary() {
         lastMotif: lastSignal?.motif,
         status: user?.isActive,
         image: user?.pathImage
-          ? `http://103.45.247.26:3000/profils/${user.pathImage}`
+          ? `${process.env.URL}/profils/${user.pathImage}`
           : null,
       };
     }),
