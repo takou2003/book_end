@@ -1,7 +1,7 @@
 // src/tutors/tutors.controller.ts
 import { Controller, Get, Query, Param, BadRequestException, Post, Body, UseGuards, Req,
 UseInterceptors,
-UploadedFile,
+UploadedFile,Delete,
 } from '@nestjs/common';
 import { TutorsService } from './tutors.service';
 import { VerificationsService } from '../verifications/verifications.service';
@@ -312,41 +312,26 @@ async createAssclass(
 }
 
 @UseGuards(JwtAuthGuard)
-@Post('RemoveTutorInclasse')
+@Delete('RemoveTutorInclasse')
 async deleteAssclass(
   @Req() req,
   @Query('classe_id') classeId: number,
-): Promise<{
-  success: boolean;
-  data?: Assclass;
-  message: string;
-  error?: string;
-}> {
-  try {
-    if (!classeId) {
-      return {
-        success: false,
-        message: 'Données manquantes',
-        error: 'classe_id est requis',
-      };
-    }
-
-    await this.tutorsService.delete_assclass(classeId);
-
-    return {
-      success: true,
-      message: 'Association delete avec succès',
-    };
-  } catch (error) {
-    return {
-      success: false,
-      message: 'Erreur lors de la supression',
-      error:
-        process.env.NODE_ENV === 'development'
-          ? error.message
-          : undefined,
-    };
+) {
+  if (!classeId) {
+    throw new BadRequestException('classe_id est requis');
   }
+
+  const teacherId = await this.tutorsService.getTutorIdFromUser(req.user.id); // 🔥 sécurisation
+
+  await this.tutorsService.delete_assclass(
+    teacherId,
+    Number(classeId),
+  );
+
+  return {
+    success: true,
+    message: 'Association supprimée avec succès',
+  };
 }
 
    @Get('DetailRequest/:id')

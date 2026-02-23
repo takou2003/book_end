@@ -91,6 +91,63 @@ async markAllAsRead(
     message: `Toutes les notifications "${title}" ont été marquées comme lues`,
   };
 }
+
+@UseGuards(JwtAuthGuard)
+@Delete('dropMessage/:id')
+async removeNotification(
+  @Req() req,
+  @Param('id') id: number,
+) {
+  const userId = req.user.id;
+
+  await this.usersService.deleteNotification(
+    userId,
+    Number(id),
+  );
+
+  return {
+    success: true,
+    message: 'Notification supprimée avec succès',
+  };
+}
+
+@UseGuards(JwtAuthGuard)
+@Delete('/delete-All-Notification')
+async removeAllNotifications(@Req() req) {
+  const userId = req.user.id;
+
+  await this.usersService.deleteAllUserNotifications(
+    userId,
+  );
+
+  return {
+    success: true,
+    message: 'Toutes les notifications ont été supprimées',
+  };
+}
+
+@UseGuards(JwtAuthGuard)
+@Delete('Delete-by-title')
+async removeByTitle(
+  @Req() req,
+  @Query('title') title: string,
+) {
+  if (!title) {
+    throw new BadRequestException('title est requis');
+  }
+
+  const userId = req.user.id;
+
+  await this.usersService.deleteNotificationsByTitle(
+    userId,
+    title,
+  );
+
+  return {
+    success: true,
+    message: 'Notifications supprimées avec succès',
+  };
+}
 @UseGuards(JwtAuthGuard)
 @Post('search/:classeId')
 async findTutors(
@@ -268,7 +325,7 @@ async createrequest(
       status: 'pending',
     };
     
-    const teacherOriginalId = await this.tutorService.getTutorIdFromUser(body.teacherId);
+    const teacherOriginalId = await this.tutorService.getUserIdFromTutor(body.teacherId);
     const make_push = await this.usersService.sendNotification(teacherOriginalId, "Demandes", "vous avez une nouvelle demande d'enseignement");
     const reqclass = await this.usersService.create_request(reqclassData);
     return {

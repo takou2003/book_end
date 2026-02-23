@@ -164,18 +164,25 @@ export class TutorsService {
   return this.assClassRepository.save(assclass);
 }
 
-// Suppression d'une assclass par ID
-  async delete_assclass(id: number): Promise<void> {
-    const assclass = await this.assClassRepository.findOne({
-      where: { id },
-    });
+async delete_assclass(
+  teacherId: number,
+  classeId: number,
+): Promise<void> {
+  const assclass = await this.assClassRepository.findOne({
+    where: {
+      teacherId,
+      classeId,
+    },
+  });
 
-    if (!assclass) {
-      throw new NotFoundException('Association non trouvée');
-    }
-
-    await this.assClassRepository.remove(assclass);
+  if (!assclass) {
+    throw new NotFoundException(
+      'Association enseignant-classe non trouvée',
+    );
   }
+
+  await this.assClassRepository.remove(assclass);
+}
 
 
 async getTutorIdFromUser(userId: number): Promise<number> {
@@ -193,6 +200,19 @@ async getTutorIdFromUser(userId: number): Promise<number> {
   }
 
   return user.tutor.id;
+}
+
+async getUserIdFromTutor(tutorId: number): Promise<number> {
+  const tutor = await this.tutorRepository.findOne({
+    where: { id: tutorId },
+    select: ['id', 'userId'], // 🔥 optimisation
+  });
+
+  if (!tutor) {
+    throw new BadRequestException('Tuteur introuvable');
+  }
+
+  return tutor.userId;
 }
 
 async TutorDetail(id: number): Promise<any[] | null>{

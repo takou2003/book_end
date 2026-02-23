@@ -208,6 +208,43 @@ async markAllAsRead(userId: number, title: string) {
   );
 }
 
+async deleteNotification(
+  userId: number,
+  notificationId: number,
+): Promise<void> {
+  const result = await this.notificationRepository.delete({
+    id: notificationId,
+    userId: userId, // 🔥 sécurité
+  });
+
+  if (result.affected === 0) {
+    throw new NotFoundException(
+      'Notification introuvable ou non autorisée',
+    );
+  }
+}
+
+async deleteAllUserNotifications(userId: number): Promise<void> {
+  await this.notificationRepository.delete({
+    userId,
+  });
+}
+
+async deleteNotificationsByTitle(
+  userId: number,
+  title: string,
+): Promise<void> {
+  const result = await this.notificationRepository.delete({
+    userId,
+    title,
+  });
+
+  if (result.affected === 0) {
+    throw new NotFoundException(
+      'Aucune notification trouvée avec ce titre',
+    );
+  }
+}
 
 async search_Tutor(ville: string, classeId: number): Promise<any[]> {
   const tutors = await this.tutorRepository
