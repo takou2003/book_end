@@ -55,6 +55,9 @@ async uploadVerification(
     description.trim(),
   );
   const make_push = await this.usersService.sendNotification(tutorId, "Certifications", "vos donnees de certifications ont ete envoye avec succes");
+  
+  const adminId = await this.usersService.getAdminUserId();
+  const push_admin = await this.usersService.sendNotification(adminId, "Certifications", "Vous avez une nouvelle demande de validation");
   return {
     success: true,
     message: 'Document envoyé pour vérification',
@@ -264,6 +267,7 @@ async handleRequest(
 async createAssclass(
   @Req() req,
   @Query('classe_id') classeId: number,
+  @Query('price') price: number,
 ): Promise<{
   success: boolean;
   data?: Assclass;
@@ -285,6 +289,7 @@ async createAssclass(
     const assclassData: Partial<Assclass> = {
       teacherId: tutorId,
       classeId: Number(classeId),
+      price: Number(price),
     };
 
     const assclass = await this.tutorsService.create_assclass(assclassData);

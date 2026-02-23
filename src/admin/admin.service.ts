@@ -26,7 +26,24 @@ export class AdminService {
     private readonly signalRepository: Repository<Signal>,
   ) {}
 
-  async confirmTeacher(
+async getTutorIdFromUser(userId: number): Promise<number> {
+  const user = await this.userRepository.findOne({
+    where: { id: userId },
+    relations: ['tutor'],
+  });
+
+  if (!user) {
+    throw new BadRequestException('Utilisateur introuvable');
+  }
+
+  if (!user.tutor) {
+    throw new BadRequestException('Utilisateur non tuteur');
+  }
+
+  return user.tutor.id;
+}
+
+async confirmTeacher(
   verificationId: number,
   decision: 'accepted' | 'denied',
 ): Promise<{ success: boolean; message: string; data?: any }> {
@@ -69,13 +86,13 @@ export class AdminService {
           : 'Demande de certification refusée',
       data: {
         ...verification,
-        userId: verification.tutor?.userId,
+        userId: verification.tutor?.userId, // 🔥 IMPORTANT
       },
     };
   } catch (error) {
     return {
       success: false,
-      message: 'Erreur lors de la confirmation de l\'enseignant',
+      message: "Erreur lors de la confirmation de l'enseignant",
     };
   }
 }

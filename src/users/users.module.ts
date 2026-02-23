@@ -13,6 +13,7 @@ import { Notation } from '../notations/entities/notations.entity';
 import { MulterModule } from '@nestjs/platform-express';
 import { SignalModule } from '../signal/signal.module';
 import { TutorsModule } from '../tutors/tutors.module';
+import { AdminModule } from '../admin/admin.module';
 import { NotificationsModule } from '../notifications/notifications.module';
 import { Notification } from '../notifications/entities/notifications.entity';
 

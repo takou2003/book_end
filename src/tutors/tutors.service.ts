@@ -44,7 +44,8 @@ export class TutorsService {
       .innerJoin('ac.classe', 'c') // INNER JOIN classes
       .select([
         'c.name AS class_name',
-        'c.id AS class_id'      
+        'c.id AS class_id',
+        'ac.price AS price',     
       ])
       .andWhere('t.id = :teacherId', { teacherId })
     return query.getRawMany();
@@ -194,7 +195,7 @@ async getTutorIdFromUser(userId: number): Promise<number> {
   return user.tutor.id;
 }
 
-  async TutorDetail(id: number): Promise<any[] | null>{
+async TutorDetail(id: number): Promise<any[] | null>{
     const infos = await this.tutorRepository
     .createQueryBuilder('t')
     .innerJoin('t.user', 'u')

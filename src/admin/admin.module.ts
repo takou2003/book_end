@@ -6,10 +6,12 @@ import { Verification } from '../verifications/entities/verification.entity';
 import { Tutor } from '../tutors/entities/tutor.entity';
 import { User } from '../users/entities/user.entity';
 import { Signal } from '../signal/entities/signal.entity';
+import { UsersModule } from '../users/users.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([Verification, Tutor, User, Signal]),
+    UsersModule,
   ],
   controllers: [AdminController],
   providers: [AdminService],

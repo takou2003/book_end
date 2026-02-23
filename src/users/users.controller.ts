@@ -377,6 +377,9 @@ async signalUser(
   );
   const originalId = signal.direction;
   const make_push = await this.usersService.sendNotification(originalId, "Avertissements", "vous compte a ete signale");
+  
+  const adminId = await this.usersService.getAdminUserId();
+  const push_admin = await this.usersService.sendNotification(adminId, "Signalement", "un compte a ete signale");
   return {
     success: true,
     message: 'Compte signalé avec succès',

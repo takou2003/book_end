@@ -83,6 +83,19 @@ export class UsersService {
   });
 }
 
+async getAdminUserId(): Promise<number> {
+  const admin = await this.usersRepository.findOne({
+    where: { fonction: 'admin' },
+    select: ['id'],
+  });
+
+  if (!admin) {
+    throw new BadRequestException('Aucun administrateur trouvé');
+  }
+
+  return admin.id;
+}
+
 async ville_tutor(ville: string): Promise<any[]> {
   const tutors = await this.tutorRepository
     .createQueryBuilder('t')
@@ -102,7 +115,8 @@ async ville_tutor(ville: string): Promise<any[]> {
       't.mark AS mark',
       't.description AS description',
       'c.name AS classe',
-      'c.id AS classe_id'
+      'c.id AS classe_id',
+      'ac.price AS price'
     ])
     .getRawMany();
 

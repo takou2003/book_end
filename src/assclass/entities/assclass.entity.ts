@@ -21,6 +21,13 @@ export class Assclass { // Assclass (sans 'e' à la fin)
   
   @Column({ name: 'classe_id' }) // Retirez 'unique: true' si une classe peut avoir plusieurs tuteurs
   classeId: number;
+  
+  @Column({ 
+    name: 'price', 
+    type: 'float', // double precision dans PostgreSQL = float
+    nullable: true 
+  })
+  price: number;
 
   @ManyToOne(() => Tutor, (tutor) => tutor.assclasse)
   @JoinColumn({ name: 'teacher_id' })
