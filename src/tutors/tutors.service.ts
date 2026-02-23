@@ -216,7 +216,7 @@ async getTutorIdFromUser(userId: number): Promise<number> {
     }));
  }
  
- async updateRequestStatus(
+async updateRequestStatus(
   id: number,
   status: 'accepted' | 'denied',
 ): Promise<{ success: boolean; message: string; data?: any }> {

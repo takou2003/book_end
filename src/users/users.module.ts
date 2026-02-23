@@ -1,5 +1,5 @@
 // src/users/users.module.ts
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { UsersService } from './users.service';
 import { UsersController } from './users.controller';
@@ -18,7 +18,8 @@ import { Notification } from '../notifications/entities/notifications.entity';
 
 @Module({
   imports: [TypeOrmModule.forFeature([User, Tutor, Classe, Reqclass, Commentaire, Notation, Signal, Notification]),
-  SignalModule,NotificationsModule,TutorsModule, // 👈 OBLIGATOIRE
+  SignalModule,NotificationsModule,
+  forwardRef(() => TutorsModule), // ✅ obligatoire // 👈 OBLIGATOIRE
   MulterModule.register({
       dest: './temp',
     }),

@@ -27,20 +27,27 @@ export class AdminService {
   ) {}
 
   async confirmTeacher(
-    verificationId: number,
-    decision: 'accepted' | 'denied',
-  ) {
+  verificationId: number,
+  decision: 'accepted' | 'denied',
+): Promise<{ success: boolean; message: string; data?: any }> {
+  try {
     const verification = await this.verificationRepository.findOne({
       where: { id: verificationId },
       relations: ['tutor'],
     });
 
     if (!verification) {
-      throw new NotFoundException('Vérification introuvable');
+      return {
+        success: false,
+        message: 'Vérification introuvable',
+      };
     }
 
     if (verification.status !== 'pending') {
-      throw new BadRequestException('Décision déjà prise');
+      return {
+        success: false,
+        message: 'Décision déjà prise',
+      };
     }
 
     verification.status = decision;
@@ -51,12 +58,27 @@ export class AdminService {
       verification.tutor.description = verification.description;
       await this.tutorRepository.save(verification.tutor);
     }
-    
+
     await this.verificationRepository.save(verification);
 
-    return verification;
+    return {
+      success: true,
+      message:
+        decision === 'accepted'
+          ? 'Enseignant confirmé avec succès'
+          : 'Demande de certification refusée',
+      data: {
+        ...verification,
+        userId: verification.tutor?.userId,
+      },
+    };
+  } catch (error) {
+    return {
+      success: false,
+      message: 'Erreur lors de la confirmation de l\'enseignant',
+    };
   }
-  
+}
   async getAllVerifications() {
     const verifies = await this.verificationRepository
       .createQueryBuilder('v')

@@ -37,8 +37,7 @@ async validateUser(mail: string, password: string): Promise<User> {
   return user;
 }
 
-
-  async login(user: User) {
+async login(user: User) {
     const payload = {
       sub: user.id,
       mail: user.mail,

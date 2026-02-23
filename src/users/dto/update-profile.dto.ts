@@ -10,5 +10,10 @@ export class UpdateProfileDto {
   @IsString()
   @MinLength(2)
   ville?: string;
+  
+  @IsOptional()
+  @IsString()
+  @MinLength(2)
+  deviceToken?: string;
 }
 

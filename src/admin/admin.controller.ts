@@ -22,7 +22,7 @@ export class AdminController {
     private readonly adminService: AdminService,
     ) {}
 
-  @Post('confirm-teacher/:verificationId')
+@Post('confirm-teacher/:verificationId')
   async confirmTeacher(
     @Param('verificationId') verificationId: number,
     @Query('decision') decision: 'accepted' | 'denied',
@@ -41,7 +41,7 @@ export class AdminController {
       verificationId,
       decision,
     );
-  }
+}
   @Get('all-verification')
   async getAllVerifications() {
     return this.adminService.getAllVerifications();

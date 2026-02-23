@@ -5,6 +5,7 @@ UploadedFile,
 } from '@nestjs/common';
 import { TutorsService } from './tutors.service';
 import { VerificationsService } from '../verifications/verifications.service';
+import { UsersService } from '../users/users.service';
 import { Reqclass } from '../reqclass/entities/reqclass.entity'; // Chemin corrigé
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { FileInterceptor } from '@nestjs/platform-express';
@@ -23,6 +24,7 @@ export class TutorsController {
   constructor(
   	private readonly tutorsService: TutorsService,
         private readonly verificationsService: VerificationsService,
+        private readonly usersService: UsersService,
   ) {}
 @UseGuards(JwtAuthGuard)
 @Post('verifications/upload')
@@ -52,7 +54,7 @@ async uploadVerification(
     file,
     description.trim(),
   );
-
+  const make_push = await this.usersService.sendNotification(tutorId, "Certifications", "vos donnees de certifications ont ete envoye avec succes");
   return {
     success: true,
     message: 'Document envoyé pour vérification',
@@ -124,8 +126,9 @@ async requestActiveUser(@Req() req) {
       count: verifications.length,
       data: verifications,
     };
-  }
+ }
   
+@UseGuards(JwtAuthGuard)
 @Post('responseRequest/:id/:action')
 async handleRequest(
   @Param('id') id: number,
@@ -135,16 +138,42 @@ async handleRequest(
     throw new BadRequestException('Action invalide');
   }
 
+  const status = action === 'accept' ? 'accepted' : 'denied';
+
   const result = await this.tutorsService.updateRequestStatus(
     id,
-    action === 'accept' ? 'accepted' : 'denied',
+    status,
   );
 
   if (!result.success) {
     throw new BadRequestException(result.message);
   }
 
+  // ✅ On récupère userId depuis la requête mise à jour
+  const userId = result.data?.userId;
+
+  if (!userId) {
+    throw new BadRequestException('Utilisateur associé introuvable');
+  }
+
+  const message =
+    status === 'accepted'
+      ? 'Votre demande est acceptée'
+      : 'Votre demande a été refusée';
+
+  // ✅ Notification envoyée dans tous les cas
+  try {
+    await this.usersService.sendNotification(
+      userId,
+      'Demandes',
+      message,
+    );
+  } catch (error) {
+    console.error('Erreur notification:', error);
+  }
+
   return {
+    success: true,
     message: result.message,
     data: result.data,
   };

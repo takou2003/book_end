@@ -175,7 +175,8 @@ async getGroupedNotifications(userId: number) {
     )
     .where('n.user_id = :userId', { userId })
     .groupBy('n.title')
-    .orderBy('lastDate', 'DESC')
+    .orderBy('MAX(n.created_at)', 'DESC') // ← plus d'alias, directement l'expression
+    .setParameter('userId', userId)       // ← paramètre explicite pour la sous-requête
     .getRawMany();
 }
 
@@ -186,10 +187,10 @@ async getNotificationsByTitle(userId: number, title: string) {
   });
 }
 
-async markAllAsRead(userId: number) {
+async markAllAsRead(userId: number, title: string) {
   await this.notificationRepository.update(
-    { userId, isRead: false },
-    { isRead: true }
+    { userId, title, isRead: false },
+    { isRead: true },
   );
 }
 
@@ -287,19 +288,17 @@ async search_Tutor(ville: string, classeId: number): Promise<any[]> {
     const usernameExists = await this.usersRepository.findOne({
       where: { username: dto.username },
     });
-
-    if (usernameExists) {
-      throw new BadRequestException(
-        'Ce nom d’utilisateur est déjà utilisé',
-      );
-    }
-
+    
     user.username = dto.username;
   }
 
   // ✅ Modifier ville
   if (dto.ville) {
     user.ville = dto.ville;
+  }
+  
+  if(dto.deviceToken) {
+    user.deviceToken = dto.deviceToken;
   }
 
   await this.usersRepository.save(user);
@@ -359,17 +358,6 @@ async create(userData: Partial<User>): Promise<User> {
 
     if (emailExists) {
       throw new ConflictException('Cet email est déjà utilisé');
-    }
-  }
-
-  // 🔎 Vérification username
-  if (userData.username) {
-    const usernameExists = await this.usersRepository.findOne({
-      where: { username: userData.username },
-    });
-
-    if (usernameExists) {
-      throw new ConflictException('Ce nom d’utilisateur est déjà utilisé');
     }
   }
 

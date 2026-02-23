@@ -1,5 +1,5 @@
 // src/tutors/tutors.module.ts
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { TutorsService } from './tutors.service';
 import { TutorsController } from './tutors.controller';
@@ -12,10 +12,12 @@ import { Commentaire } from '../commentaires/entities/commentaires.entity'; // C
 import { Notation } from '../notations/entities/notations.entity';
 import { Verification } from '../verifications/entities/verification.entity';
 import { VerificationsModule } from '../verifications/verifications.module';
+import { UsersModule } from '../users/users.module';
 @Module({
   imports: [
     TypeOrmModule.forFeature([Tutor, Assclass, Classe, Reqclass, User, Commentaire, Notation, Verification]),
-    VerificationsModule, // ⭐ ICI
+    VerificationsModule,
+    forwardRef(() => UsersModule), // ✅ obligatoire // ⭐ ICI
   ],
   controllers: [TutorsController],
   providers: [TutorsService],

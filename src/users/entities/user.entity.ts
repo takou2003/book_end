@@ -123,7 +123,7 @@ export class User {
   refreshToken: string;
   
    @Column({ 
-    name: 'deviceToken', 
+    name: 'device_token', 
     length: 250, // Même longueur
     nullable: true 
   })

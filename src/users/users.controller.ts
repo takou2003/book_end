@@ -53,7 +53,44 @@ export class UsersController {
         error: process.env.NODE_ENV === 'development' ? error.message : undefined
       };
     }
+}
+
+@UseGuards(JwtAuthGuard)
+@Get('notifications/grouped')
+async getGroupedNotifications(@Req() req) {
+  const userId = req.user.id;
+  return this.usersService.getGroupedNotifications(userId);
+}
+
+@UseGuards(JwtAuthGuard)
+@Get('notifications/by-title')
+async getNotificationsByTitle(
+  @Req() req,
+  @Query('title') title: string,
+) {
+  if (!title) {
+    throw new BadRequestException('Le paramètre title est requis');
   }
+  const userId = req.user.id;
+  return this.usersService.getNotificationsByTitle(userId, title);
+}
+
+@UseGuards(JwtAuthGuard)
+@Patch('notifications/mark-all-read')
+async markAllAsRead(
+  @Req() req,
+  @Query('title') title: string,
+) {
+  if (!title) {
+    throw new BadRequestException('Le paramètre title est requis');
+  }
+  const userId = req.user.id;
+  await this.usersService.markAllAsRead(userId, title);
+  return {
+    success: true,
+    message: `Toutes les notifications "${title}" ont été marquées comme lues`,
+  };
+}
 @UseGuards(JwtAuthGuard)
 @Post('search/:classeId')
 async findTutors(
@@ -97,7 +134,7 @@ async findTutors(
   ) {
     return this.usersService.updateProfile(req.user.id, dto);
  }
-
+ 
 @UseGuards(JwtAuthGuard)
 @Post('/rating')
 async noteTutor(
@@ -231,10 +268,9 @@ async createrequest(
       status: 'pending',
     };
     
-    const teacher_original_id = await this.tutorService.getTutorIdFromUser(body.teacherId);
-    const make_push = await this.usersService.sendNotification(teacher_original_id, "Demande", "vous avez une nouvelle demande d'enseignement");
+    const teacherOriginalId = await this.tutorService.getTutorIdFromUser(body.teacherId);
+    const make_push = await this.usersService.sendNotification(teacherOriginalId, "Demandes", "vous avez une nouvelle demande d'enseignement");
     const reqclass = await this.usersService.create_request(reqclassData);
-
     return {
       success: true,
       data: reqclass,
@@ -253,7 +289,6 @@ async createrequest(
     };
   }
 }
-
 		
 @UseGuards(JwtAuthGuard)
 @Post('upload-profile')
@@ -340,7 +375,8 @@ async signalUser(
     userId,
     dto,
   );
-
+  const originalId = signal.direction;
+  const make_push = await this.usersService.sendNotification(originalId, "Avertissements", "vous compte a ete signale");
   return {
     success: true,
     message: 'Compte signalé avec succès',
