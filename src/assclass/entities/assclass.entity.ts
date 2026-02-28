@@ -25,7 +25,7 @@ export class Assclass { // Assclass (sans 'e' à la fin)
   @Column({ 
     name: 'price', 
     type: 'float', // double precision dans PostgreSQL = float
-    nullable: true 
+    nullable: true
   })
   price: number;
 

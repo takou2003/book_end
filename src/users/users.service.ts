@@ -83,6 +83,21 @@ export class UsersService {
   });
 }
 
+async updatePassword(
+  userId: number,
+  hashedPassword: string,
+): Promise<void> {
+
+  const result = await this.usersRepository.update(
+    { id: userId },
+    { password: hashedPassword },
+  );
+
+  if (result.affected === 0) {
+    throw new NotFoundException('User not found');
+  }
+}
+
 async getAdminUserId(): Promise<number> {
   const admin = await this.usersRepository.findOne({
     where: { fonction: 'admin' },
@@ -104,6 +119,8 @@ async ville_tutor(ville: string): Promise<any[]> {
     .innerJoin('ac.classe', 'c')
     .where('u.ville = :ville', { ville })
     .andWhere('t.isActive = true')
+    .groupBy('t.id')
+    .addGroupBy('u.id')
     .orderBy('RANDOM()')
     .limit(5)
     .select([
@@ -114,13 +131,18 @@ async ville_tutor(ville: string): Promise<any[]> {
       'u.pathImage AS image',
       't.mark AS mark',
       't.description AS description',
-      'c.name AS classe',
-      'c.id AS classe_id',
-      'ac.price AS price'
+      `
+      JSON_AGG(
+        JSON_BUILD_OBJECT(
+          'classe_id', c.id,
+          'classe', c.name,
+          'price', ac.price
+        )
+      ) AS classes
+      `
     ])
     .getRawMany();
 
-  // Ajouter l'URL de l'image
   return tutors.map(tutor => ({
     ...tutor,
     imageUrl: `${process.env.URL}/profils/${tutor.image}`,
@@ -131,38 +153,38 @@ async sendNotification(
   userId: number,
   title: string,
   body: string,
-): Promise<Notification | void> {
+): Promise<Notification> {
   const user = await this.usersRepository.findOne({
     where: { id: userId },
   });
 
-  if (!user || !user.deviceToken) return;
+  if (!user) {
+    throw new NotFoundException('User not found');
+  }
 
-  const deviceToken = user.deviceToken;
-
-  if (!Expo.isExpoPushToken(deviceToken)) return;
-
-  // Sauvegarde en base
+  // ✅ On sauvegarde TOUJOURS la notification
   const notification = await this.notificationRepository.save({
     title,
     body,
-    deviceToken,
+    deviceToken: user.deviceToken ?? null,
     userId,
-    isRead: false, // toujours à false à la création
+    isRead: false,
   });
 
-  // Envoi via Expo
-  try {
-    await this.expo.sendPushNotificationsAsync([
-      {
-        to: deviceToken,
-        sound: 'default',
-        title,
-        body,
-      },
-    ]);
-  } catch (error) {
-    console.error('Erreur envoi notification Expo', error);
+  // ✅ On tente l’envoi seulement si token valide
+  if (user.deviceToken && Expo.isExpoPushToken(user.deviceToken)) {
+    try {
+      await this.expo.sendPushNotificationsAsync([
+        {
+          to: user.deviceToken,
+          sound: 'default',
+          title,
+          body,
+        },
+      ]);
+    } catch (error) {
+      console.error('Erreur envoi notification Expo', error);
+    }
   }
 
   return notification;

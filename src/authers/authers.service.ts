@@ -26,7 +26,7 @@ export class AuthersService {
   }
 
   // 📩 ENVOI / RENVOI
-  async sendOrResendCode(email: string) {
+ async sendOrResendCode(email: string) {
     // Vérifier si l'identifiant a déjà été vérifié
     const alreadyVerified = await this.repo.findOne({
       where: { 
@@ -95,6 +95,42 @@ export class AuthersService {
 
     return { message: 'Code envoyé' };
   }
+  
+  // 📩 RESET PASSWORD - UPDATE ONLY
+async resendResetCode(email: string) {
+
+  // 1️⃣ Vérifier si un enregistrement existe
+  const reset = await this.repo.findOne({
+    where: { identifiant: email },
+  });
+
+  // 🔒 Toujours réponse neutre
+  if (!reset) {
+    return { message: 'Si un compte existe, un email a été envoyé' };
+  }
+
+  // 2️⃣ Générer nouveau code
+  const newCode = this.generateCode();
+  const newExpiration = this.getExpiration();
+
+  // 3️⃣ Update uniquement
+  await this.repo.update(
+    { id: reset.id },
+    {
+      code: newCode,
+      expiresAt: newExpiration
+    },
+  );
+
+  // 4️⃣ Envoi email
+  await this.mailer.sendMail({
+    to: email,
+    subject: 'Réinitialisation du mot de passe',
+    text: `Votre code est : ${newCode} (valide 3 min)`,
+  });
+
+  return { message: 'Si un compte existe, un email a été envoyé' };
+}
 
   // ✅ VÉRIFICATION DU CODE (avec UPDATE)
   async verifyCode(email: string, code: string) {
@@ -121,8 +157,7 @@ export class AuthersService {
     // 🔒 UPDATE pour marquer comme utilisé
     const updateResult = await this.repo.update(
       { 
-        id: auther.id,
-        used: false  // Condition supplémentaire pour sécurité
+        id: auther.id
       },
       { 
         used: true 

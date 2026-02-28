@@ -37,6 +37,28 @@ async validateUser(mail: string, password: string): Promise<User> {
   return user;
 }
 
+async resetPassword(
+  email: string,
+  newPassword: string,
+) {
+  const user = await this.usersService.findByEmail(email);
+
+  if (!user) {
+    throw new UnauthorizedException('Invalid request');
+  }
+
+  const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+  await this.usersService.updatePassword(
+    user.id,
+    hashedPassword,
+  );
+
+  return { message: 'Password successfully updated' };
+}
+
+
+
 async login(user: User) {
     const payload = {
       sub: user.id,

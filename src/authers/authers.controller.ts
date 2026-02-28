@@ -10,6 +10,11 @@ export class AuthersController {
   send(@Body('email') email: string) {
     return this.service.sendOrResendCode(email);
   }
+  
+  @Post('send-reset-code')
+  reset(@Body('email') email: string) {
+    return this.service.resendResetCode(email);
+  }
 
   @Post('verify-code')
   verify(

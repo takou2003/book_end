@@ -10,6 +10,7 @@ import {
   HttpCode,
   BadRequestException,
   Delete,
+  Patch,
 } from '@nestjs/common';
 
 import { AuthService } from './auth.service';
@@ -28,6 +29,14 @@ export class AuthController {
     );
     return this.authService.login(user);
   }
+  
+@Patch('reset/password')
+async resetPassword(
+  @Body('email') email: string,
+  @Body('password') password: string,
+) {
+  return this.authService.resetPassword(email, password);
+}
 
 @Post('refresh')
 @HttpCode(200)
