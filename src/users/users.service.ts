@@ -286,6 +286,7 @@ async search_Tutor(ville: string, classeId: number): Promise<any[]> {
       'c.name AS class_name',
       't.id AS teacher_id',
       'c.id AS classe_id',
+      'ac.price AS price',
       't.description AS description',
     ])
     .where('u.ville = :ville', { ville })
