@@ -57,8 +57,45 @@ async resetPassword(
   return { message: 'Password successfully updated' };
 }
 
+// src/auth/auth.service.ts
+async updatePassword(
+  email: string,
+  oldPassword: string,
+  newPassword: string,
+) {
+  // 1. Récupérer l'utilisateur avec son mot de passe
+  const user = await this.usersService.findByEmailWithPassword(email);
 
+  if (!user) {
+    throw new UnauthorizedException('Invalid request');
+  }
 
+  // 2. Vérifier que l'ancien mot de passe correspond
+  const isOldPasswordValid = await bcrypt.compare(oldPassword, user.password);
+  
+  if (!isOldPasswordValid) {
+    throw new UnauthorizedException('Ancien mot de passe incorrect');
+  }
+
+  // 3. Hasher et sauvegarder le nouveau mot de passe
+  const hashedPassword = await bcrypt.hash(newPassword, 10);
+  await this.usersService.updatePassword(user.id, hashedPassword);
+
+  // 4. Invalider les refresh tokens (déconnecter l'utilisateur)
+  await this.usersService.invalidateRefreshTokens(user.id);
+
+  return {
+    status: 'success',
+    code: 'PASSWORD_UPDATED',
+    data: {
+      message: 'Votre mot de passe a été modifié avec succès',
+      instructions: 'Pour des raisons de sécurité, vous allez être déconnecté.',
+      action: 'RECONNECT_REQUIRED',
+      redirectTo: '/login',
+    },
+    timestamp: new Date().toISOString(),
+  };
+}
 async login(user: User) {
     const payload = {
       sub: user.id,

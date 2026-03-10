@@ -38,6 +38,17 @@ async resetPassword(
   return this.authService.resetPassword(email, password);
 }
 
+
+@Patch('update_password')
+@UseGuards(JwtAuthGuard)
+async updatePassword(
+  @Body('old_pass') oldPass: string,
+  @Body('new_pass') newPass: string,
+  @Req() req
+) {
+  return this.authService.updatePassword(req.user.mail, oldPass, newPass);
+}
+
 @Post('refresh')
 @HttpCode(200)
 refresh(@Body('refreshToken') token: string) {

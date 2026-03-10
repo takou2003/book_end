@@ -572,6 +572,20 @@ private async calculateTeacherAverage(teacherId: number): Promise<{
   };
 }
 
+// src/users/users.service.ts
+async findByEmailWithPassword(email: string): Promise<User | null> {
+  return this.usersRepository.findOne({
+    where: { mail: email },
+    select: ['id', 'mail', 'password', 'isActive'], // Seulement ce dont on a besoin
+  });
+}
+
+async invalidateRefreshTokens(userId: number): Promise<void> {
+  await this.usersRepository.update(
+    { id: userId },
+    { refreshToken: '' }
+  );
+}
 
 
 async createTutor(dto: CreateTutorDto) {
