@@ -54,10 +54,18 @@ async uploadVerification(
     file,
     description.trim(),
   );
-  const make_push = await this.usersService.sendNotification(tutorId, "Certifications", "vos donnees de certifications ont ete envoye avec succes");
+  const make_push = await this.usersService.sendNotification(
+  tutorId, 
+  "Certifications", 
+  "Vos données de certification ont été envoyées avec succès"
+);
   
   const adminId = await this.usersService.getAdminUserId();
-  const push_admin = await this.usersService.sendNotification(adminId, "Certifications", "Vous avez une nouvelle demande de validation");
+const push_admin = await this.usersService.sendNotification(
+  adminId, 
+  "Certifications", 
+  "Vous avez une nouvelle demande de validation"
+);
   return {
     success: true,
     message: 'Document envoyé pour vérification',

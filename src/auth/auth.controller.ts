@@ -60,5 +60,20 @@ refresh(@Body('refreshToken') token: string) {
   async me(@Req() req) {
    return this.authService.getMe(req.user);
   }
+  
+  @Post('verify-my-password')
+  @UseGuards(JwtAuthGuard)
+  async verifyMyPassword(
+    @Req() req,
+    @Body('password') password: string
+  ) {
+    
+    const result = await this.authService.verifyPassword(
+      req.user.mail, // Email de l'utilisateur connecté (plus sûr)
+      password
+    );
+    
+    return result;
+  }
 }
 

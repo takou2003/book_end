@@ -207,7 +207,7 @@ async getSignalDetailsByUser(userId: number) {
     createdAt: signal.createdAt,
   }));
 }
-
+// Dans admin.service.ts
 async toggleUserStatus(userId: number) {
   const user = await this.userRepository.findOne({
     where: { id: userId },
@@ -217,8 +217,17 @@ async toggleUserStatus(userId: number) {
     throw new NotFoundException('Utilisateur introuvable');
   }
 
-  // 🔁 Inverser l'état
-  user.isActive = !user.isActive;
+  const wasActive = user.isActive;
+  const newStatus = !wasActive;
+
+  // 🔐 Si on DÉSACTIVE le compte
+  if (wasActive === true && newStatus === false) {
+    user.refreshToken = ''; // ← Chaîne vide au lieu de null
+    console.log(`🔴 Compte ${userId} désactivé - refresh token supprimé`);
+  }
+
+  user.isActive = newStatus;
+  user.updatedAt = new Date();
 
   await this.userRepository.save(user);
 
@@ -227,11 +236,9 @@ async toggleUserStatus(userId: number) {
     username: user.username,
     isActive: user.isActive,
     message: user.isActive
-      ? 'Compte activé avec succès'
-      : 'Compte désactivé avec succès',
+      ? '✅ Compte activé avec succès'
+      : '🔴 Compte désactivé avec succès',
   };
 }
-
-
 }
 

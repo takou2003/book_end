@@ -326,7 +326,12 @@ async createrequest(
     };
     
     const teacherOriginalId = await this.tutorService.getUserIdFromTutor(body.teacherId);
-    const make_push = await this.usersService.sendNotification(teacherOriginalId, "Demandes", "vous avez une nouvelle demande d'enseignement");
+    const make_push = await this.usersService.sendNotification(
+	  teacherOriginalId, 
+	  "Demandes", 
+	  "Vous avez reçu une nouvelle demande d'enseignement"
+    );
+    
     const reqclass = await this.usersService.create_request(reqclassData);
     return {
       success: true,
@@ -433,10 +438,18 @@ async signalUser(
     dto,
   );
   const originalId = signal.direction;
-  const make_push = await this.usersService.sendNotification(originalId, "Avertissements", "vous compte a ete signale");
+const make_push = await this.usersService.sendNotification(
+  originalId, 
+  "Avertissements", 
+  "Votre compte a été signalé"
+);
   
   const adminId = await this.usersService.getAdminUserId();
-  const push_admin = await this.usersService.sendNotification(adminId, "Signalement", "un compte a ete signale");
+const push_admin = await this.usersService.sendNotification(
+  adminId, 
+  "Signalement", 
+  "Un compte a été signalé"
+);
   return {
     success: true,
     message: 'Compte signalé avec succès',

@@ -2,9 +2,13 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MailerModule } from '@nestjs-modules/mailer';
+import { APP_INTERCEPTOR } from '@nestjs/core';
 
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+
+import { ActiveUserInterceptor } from './common/interceptors/active-user.interceptor';
+import { User } from './users/entities/user.entity'; // CORRIGÉ: enlever ../src/
 
 import { UsersModule } from './users/users.module';
 import { ProfilsModule } from './users/UserProfil.module';
@@ -23,7 +27,6 @@ import { AuthModule } from './auth/auth.module';
 import { AdminModule } from './admin/admin.module';
 import { SignalModule } from './signal/signal.module';
 import { NotificationsModule } from './notifications/notifications.module';
-
 
 @Module({
   imports: [
@@ -56,6 +59,28 @@ import { NotificationsModule } from './notifications/notifications.module';
       }),
     }),
 
+    // 🔥 IMPORTANT: Pour que l'interceptor puisse utiliser le repository User
+    TypeOrmModule.forFeature([User]),
+
+    // Mail
+    MailerModule.forRoot({
+      transport: {
+        host: process.env.EMAIL_HOST, // smtp.hostinger.com
+        port: Number(process.env.EMAIL_PORT), // 587 (recommandé)
+        secure: false, // false pour 587 (STARTTLS)
+        auth: {
+          user: process.env.EMAIL_USERNAME,
+          pass: process.env.EMAIL_PASSWORD,
+        },
+        tls: {
+          rejectUnauthorized: false, // Utile pour certains environnements
+        }
+      },
+      defaults: {
+        from: `"Bookup Study" <${process.env.EMAIL_USERNAME}>`,
+      },
+    }),
+
     // Modules
     UsersModule,
     TutorsModule,
@@ -69,35 +94,20 @@ import { NotificationsModule } from './notifications/notifications.module';
     ProfilsModule,
     DocumentsModule,
     VerificationsModule,
-
-    // Mail
-    MailerModule.forRoot({
-  transport: {
-    host: process.env.EMAIL_HOST,
-    port: Number(process.env.EMAIL_PORT),
-    secure: false, // TLS
-    auth: {
-      user: process.env.EMAIL_USERNAME,
-      pass: process.env.EMAIL_PASSWORD,
-    },
-  },
-  defaults: {
-    from: `"BookUp" <${process.env.EMAIL_USERNAME}>`,
-  },
- }),
-
     AuthersModule,
-
     AuthModule,
-
     AdminModule,
-
     SignalModule,
-
     NotificationsModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [
+    AppService,
+    // 🔥 Configuration de l'interceptor GLOBAL
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: ActiveUserInterceptor, // S'applique à TOUTES les routes
+    },
+  ],
 })
 export class AppModule {}
-

@@ -129,6 +129,14 @@ export class User {
   })
   deviceToken: string;
   
+  @Column({ 
+    name: 'is_accepted', 
+    type: 'boolean',
+    default: true,
+    nullable: false 
+  })
+  isAccepted: boolean;
+  
   @OneToOne(() => Tutor, (tutor) => tutor.user)
   tutor: Tutor; // Relation simple sans configuration de jointure;
   

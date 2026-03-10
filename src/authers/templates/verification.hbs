@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f5f5f5;
+      margin: 0;
+      padding: 0;
+    }
+    .container {
+      max-width: 600px;
+      margin: 20px auto;
+      background-color: #ffffff;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    .header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      padding: 30px 20px;
+      text-align: center;
+    }
+    .header img {
+      max-width: 150px;
+      height: auto;
+    }
+    .header h1 {
+      color: white;
+      margin: 10px 0 0;
+      font-size: 24px;
+      font-weight: 300;
+    }
+    .content {
+      padding: 40px 30px;
+      text-align: center;
+    }
+    .greeting {
+      font-size: 18px;
+      color: #333;
+      margin-bottom: 20px;
+    }
+    .greeting strong {
+      color: #667eea;
+    }
+    .message {
+      color: #666;
+      line-height: 1.6;
+      margin-bottom: 30px;
+    }
+    .code-box {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      border-radius: 8px;
+      padding: 25px;
+      margin: 30px 0;
+    }
+    .code-box p {
+      color: white;
+      font-size: 14px;
+      margin: 0 0 10px;
+      opacity: 0.9;
+    }
+    .code {
+      font-size: 48px;
+      font-weight: bold;
+      color: white;
+      letter-spacing: 5px;
+      margin: 0;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+    }
+    .expiration {
+      color: #999;
+      font-size: 14px;
+      margin: 20px 0;
+    }
+    .support {
+      background-color: #f8f9fa;
+      border-radius: 8px;
+      padding: 20px;
+      margin: 30px 0 0;
+    }
+    .support p {
+      color: #666;
+      margin: 0 0 10px;
+    }
+    .support-link {
+      color: #667eea;
+      text-decoration: none;
+      font-weight: bold;
+      border-bottom: 2px solid #667eea;
+    }
+    .footer {
+      background-color: #f8f9fa;
+      padding: 20px;
+      text-align: center;
+      border-top: 1px solid #e9ecef;
+    }
+    .footer p {
+      color: #999;
+      font-size: 12px;
+      margin: 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <!-- Image à remplacer par ton logo -->
+      <img src="templates/logob.jpeg" alt="BookUp" onerror="this.style.display='none'">
+      <h1>Vérification de votre compte</h1>
+    </div>
+    
+    <div class="content">
+      <div class="greeting">
+        Bonjour <strong>{{email}}</strong>,
+      </div>
+      
+      <div class="message">
+        Votre code d'accès pour une connexion unique à la plateforme BookUp est :
+      </div>
+      
+      <div class="code-box">
+        <p>Code de vérification</p>
+        <div class="code">{{code}}</div>
+      </div>
+      
+      <div class="expiration">
+        ⏱️ Ce code est valable 3 minutes
+      </div>
+      
+      <div class="support">
+        <p>Si vous pensez que ce courriel a été envoyé par erreur,</p>
+        <p>veuillez contacter notre support :</p>
+        <a href="mailto:contact@bookupstudy.com" class="support-link">contact@bookupstudy.com</a>
+      </div>
+    </div>
+    
+    <div class="footer">
+      <p>© 2024-2026 Bookup Study, Inc., Tous droits réservés.</p>
+    </div>
+  </div>
+</body>
+</html>

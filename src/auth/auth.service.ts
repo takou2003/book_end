@@ -144,5 +144,41 @@ async getMe(userFromToken: { id: number; fonction: string }) {
   return response;
 }
 
+async verifyPassword(email: string, password: string): Promise<{ isValid: boolean; message: string }> {
+  try {
+    // Rechercher l'utilisateur par email
+    const user = await this.usersService.findByEmail(email);
+
+    // Vérifier si l'utilisateur existe
+    if (!user) {
+      return {
+        isValid: false,
+        message: 'Utilisateur non trouvé'
+      };
+    }
+
+    // Comparer le mot de passe fourni avec celui hashé en base
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+
+    if (isPasswordValid) {
+      return {
+        isValid: true,
+        message: 'Mot de passe correct'
+      };
+    } else {
+      return {
+        isValid: false,
+        message: 'Mot de passe incorrect'
+      };
+    }
+  } catch (error) {
+    // Gérer les erreurs inattendues
+    return {
+      isValid: false,
+      message: 'Erreur lors de la vérification du mot de passe'
+    };
+  }
+}
+
 }
 
