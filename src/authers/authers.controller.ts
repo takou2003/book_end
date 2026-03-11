@@ -15,13 +15,23 @@ export class AuthersController {
   reset(@Body('email') email: string) {
     return this.service.resendResetCode(email);
   }
-
+ 
+  @Post('send-code-sms')
+  async sendCodeBySms(@Body('phone') phone: string) {
+    return this.service.sendOrResendCodeSms(phone);
+  }
+  
+  @Post('reset-code-sms')
+  async resetCodeBySms(@Body('phone') phone: string) {
+    return this.service.resendResetCodeSms(phone);
+  }
+  
   @Post('verify-code')
   verify(
-    @Body('email') email: string,
+    @Body('identifiant') identifiant: string,
     @Body('code') code: string,
   ) {
-    return this.service.verifyCode(email, code);
+    return this.service.verifyCode(identifiant, code);
   }
 }
 

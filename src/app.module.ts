@@ -27,6 +27,7 @@ import { AuthModule } from './auth/auth.module';
 import { AdminModule } from './admin/admin.module';
 import { SignalModule } from './signal/signal.module';
 import { NotificationsModule } from './notifications/notifications.module';
+import { SmsModule } from './sms/sms.module';
 
 @Module({
   imports: [
@@ -48,7 +49,7 @@ import { NotificationsModule } from './notifications/notifications.module';
         password: configService.get('DB_PASSWORD', ''),
         database: configService.get('DB_DATABASE', 'first_db'),
         entities: [__dirname + '/**/*.entity{.ts,.js}'],
-        synchronize: configService.get('DB_SYNCHRONIZE', 'true') === 'true',
+        synchronize: configService.get('DB_SYNCHRONIZE', 'false') === 'false',
         logging: false,
         extra: {
           ssl:
@@ -99,6 +100,7 @@ import { NotificationsModule } from './notifications/notifications.module';
     AdminModule,
     SignalModule,
     NotificationsModule,
+    SmsModule,
   ],
   controllers: [AppController],
   providers: [
