@@ -494,28 +494,34 @@ async verifyCode(identifiant: string, code: string) {
   }
 
   async resendResetCodeSms(phone: string) {
-    const reset = await this.repo.findOne({
-      where: { identifiant: phone },
-    });
+  // 1️⃣ Vérifier si un enregistrement existe
+  const reset = await this.repo.findOne({
+    where: { identifiant: phone },
+  });
 
-    if (!reset) {
-      return { message: 'Si un compte existe, un SMS a été envoyé' };
-    }
-
-    const newCode = this.generateCode();
-    const newExpiration = this.getExpiration();
-
-    await this.repo.update(
-      { id: reset.id },
-      {
-        code: newCode,
-        expiresAt: newExpiration
-      },
-    );
-
-    const message = `Bookup: Votre code de réinitialisation est ${newCode}. Valable 3 minutes.`;
-    await this.sendSmsWithCurl(phone, message);
-
+  // 🔒 Toujours réponse neutre (sécurité)
+  if (!reset) {
     return { message: 'Si un compte existe, un SMS a été envoyé' };
   }
+
+  // 2️⃣ Générer nouveau code
+  const newCode = this.generateCode();
+  const newExpiration = this.getExpiration();
+
+  // 3️⃣ Mise à jour en base
+  await this.repo.update(
+    { id: reset.id },
+    {
+      code: newCode,
+      expiresAt: newExpiration
+    },
+  );
+
+  // 4️⃣ Envoi du SMS
+  const message = `Bookup: Votre code de réinitialisation est ${newCode}. Valable 3 minutes.`;
+  await this.sendSmsWithCurl(phone, message);
+
+  // 5️⃣ Réponse neutre
+  return { message: 'Si un compte existe, un SMS a été envoyé' };
+}
 }
