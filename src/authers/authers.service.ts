@@ -293,7 +293,8 @@ export class AuthersService {
       { id: reset.id },
       {
         code: newCode,
-        expiresAt: newExpiration
+        expiresAt: newExpiration,
+        used: false
       },
     );
 
@@ -513,7 +514,8 @@ async verifyCode(identifiant: string, code: string) {
     { id: reset.id },
     {
       code: newCode,
-      expiresAt: newExpiration
+      expiresAt: newExpiration,
+      used: false
     },
   );
 
