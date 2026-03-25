@@ -30,7 +30,7 @@ async validateUser(mail: string, password: string): Promise<User> {
   // 🚫 Account blocked
   if (!user.isActive) {
     throw new UnauthorizedException(
-      'This account is pending deletion and has been blocked.',
+      'This account is pending deletion or has been blocked.',
     );
   }
 
