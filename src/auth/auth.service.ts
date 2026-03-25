@@ -30,7 +30,7 @@ async validateUser(mail: string, password: string): Promise<User> {
   // 🚫 Account blocked
   if (!user.isActive) {
     throw new UnauthorizedException(
-      'Your account has been blocked. Please contact the administrator.',
+      'This account is pending deletion and has been blocked.',
     );
   }
 
@@ -217,5 +217,27 @@ async verifyPassword(email: string, password: string): Promise<{ isValid: boolea
   }
 }
 
+async deleteAccount(userId: number, email: string, password: string) {
+  const userWithPassword = await this.usersService.findByEmailWithPassword(email);
+
+  if (!userWithPassword) {
+    throw new UnauthorizedException('Utilisateur introuvable');
+  }
+
+  const isPasswordValid = await bcrypt.compare(password, userWithPassword.password);
+  if (!isPasswordValid) {
+    throw new UnauthorizedException('Mot de passe incorrect');
+  }
+
+  await this.usersService.invalidateRefreshTokens(userId);
+  await this.usersService.deactivateAccount(userId);
+
+  return {
+    status: 'success',
+    code: 'ACCOUNT_DELETED',
+    data: { message: 'Votre compte a été supprimé avec succès' },
+    timestamp: new Date().toISOString(),
+  };
+}
 }
 

@@ -891,4 +891,8 @@ async findMeWithRelations(id: number): Promise<User | null> {
     relations: ['tutor'],
   });
 }
+
+async deactivateAccount(userId: number) {
+  await this.usersRepository.update(userId, { isActive: false });
+}
 }

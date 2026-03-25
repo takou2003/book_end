@@ -86,5 +86,14 @@ refresh(@Body('refreshToken') token: string) {
     
     return result;
   }
+  
+@Delete('delete-account')
+@UseGuards(JwtAuthGuard)
+async deleteAccount(
+  @Req() req,
+  @Body('password') password: string,
+) {
+  return this.authService.deleteAccount(req.user.id, req.user.mail, password);
+}
 }
 
