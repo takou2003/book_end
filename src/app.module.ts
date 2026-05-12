@@ -39,26 +39,25 @@ import { SmsModule } from './sms/sms.module';
 
     // DB
     TypeOrmModule.forRootAsync({
-      imports: [ConfigModule],
-      inject: [ConfigService],
-      useFactory: (configService: ConfigService) => ({
-        type: 'postgres',
-        host: configService.get('DB_HOST', 'localhost'),
-        port: configService.get<number>('DB_PORT', 5432),
-        username: configService.get('DB_USERNAME', 'wilfried'),
-        password: configService.get('DB_PASSWORD', ''),
-        database: configService.get('DB_DATABASE', 'first_db'),
-        entities: [__dirname + '/**/*.entity{.ts,.js}'],
-        synchronize: configService.get('DB_SYNCHRONIZE', 'false') === 'false',
-        logging: false,
-        extra: {
-          ssl:
-            configService.get('NODE_ENV') === 'production'
-              ? { rejectUnauthorized: false }
-              : false,
-        },
-      }),
-    }),
+  imports: [ConfigModule],
+  inject: [ConfigService],
+  useFactory: (configService: ConfigService) => ({
+    type: 'postgres',
+    host: configService.get('DB_HOST', 'localhost'),
+    port: configService.get<number>('DB_PORT', 5432),
+    username: configService.get('DB_USERNAME', 'wilfried'),
+    password: configService.get('DB_PASSWORD', ''),
+    database: configService.get('DB_DATABASE', 'first_db'),
+    entities: [__dirname + '/**/*.entity{.ts,.js}'],
+    synchronize: false, // ← DÉSACTIVÉ DÉFINITIVEMENT
+    logging: false,
+    extra: {
+      ssl: configService.get('NODE_ENV') === 'production'
+        ? { rejectUnauthorized: false }
+        : false,
+    },
+  }),
+}),
 
     // 🔥 IMPORTANT: Pour que l'interceptor puisse utiliser le repository User
     TypeOrmModule.forFeature([User]),
